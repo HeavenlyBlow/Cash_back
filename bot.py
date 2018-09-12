@@ -32,7 +32,17 @@ def start_handler(message):
     bot.send_message(chat_id,
                     '''\U0000270CЗдравствуйте.\U0000270C
 Вас приветствует кэш-бэк сервис - ********.''', reply_markup=m.start_markup)
-    bot.send_message(chat_id, "Сейчас процент: " + str(db.proc) + "\nВведите номер телефона в формате \"+12345678901\"")
+    bot.send_message(chat_id, "Сейчас процент: " + str(db.proc) + "\nДля установки процента нажмите: /set_proc\nВведите номер телефона в формате \"+12345678901\"")
+
+@bot.message_handler(commands=['set_proc'])
+def set_proc(message):
+    chat_id = message.chat.id
+    msg1 = bot.send_message(chat_id, "Введите новый процент")
+
+    if msg1.text == "/start":
+        bot.register_next_step_handler(msg1,start_handler)
+    else:
+        bot.register_next_step_handler(msg1, newproce)
 
 @bot.message_handler(regexp="\+ *")
 def handle_message(message):
@@ -71,15 +81,10 @@ def add_points_two(message):
 def text_handler(message):
     console(message.text, message)
     chat_id = message.chat.id
-    if message.text == "Установка процента":
-
-        chat_id = message.chat.id
-        msg1 = bot.send_message(chat_id, "Введите новый процент")
-        bot.register_next_step_handler(msg1, newproce)
-    elif message.text == "Помощь":
-        bot.send_message(chat_id,"Тут будет помощь")
+    if message.text == "Помощь":
+        bot.send_message(chat_id, "Тут будет помощь")
     else:
-        bot.send_message(chat_id,"Команда не распознана")
+        bot.send_message(chat_id, "Команда не распознана")
 
 def newproce(message):
     chat_id=message.chat.id
@@ -89,7 +94,7 @@ def newproce(message):
     elif message.text=="/start":
         bot.register_next_step_handler(message,start_handler)
     else:
-        bot.send_message(chat_id,"Процент должен быть числом")
+        bot.send_message(chat_id,"Процент должен быть числом2")
         bot.register_next_step_handler(message, newproce)
 
 def np_info(message):
