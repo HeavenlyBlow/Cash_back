@@ -43,6 +43,9 @@ def return_name():
 def return_point():
     global point
     return point
+def return_error():
+    global error_request
+    return error_request
 
 # TODO Если Лешику не нужен номер то слует изменить цикл
 

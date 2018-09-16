@@ -5,7 +5,7 @@ import markups as m
 import datetime
 import database as db
 from DataBasssee import mySQL
-from InformationOutputManager import information_request,return_name,return_point,error_request
+from InformationOutputManager import information_request,return_name,return_point,return_error
 
 
 bot = telebot.TeleBot(config.token)
@@ -127,9 +127,8 @@ def handle_message(message):
 
     information_request(number)
 
-    if error_request == False:
+    if return_error() == False:
         bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
-
     else:
         bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
 
@@ -163,7 +162,6 @@ def callback_key(call):
     message_id=call.message.message_id
     if call.data == "change_proc":
         try:
-            # set_proc(call.message)
             msg1 = bot.edit_message_text("Введите новый процент",chat_id, message_id)
             bot.register_next_step_handler(msg1, newproce)
 
