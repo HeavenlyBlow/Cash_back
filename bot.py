@@ -29,20 +29,11 @@ def isint(s):
 def start_handler(message):
     chat_id = message.chat.id
     console("/start",message)
-    bot.send_message(chat_id,
-                    '''\U0000270CЗдравствуйте.\U0000270C
-Вас приветствует кэш-бэк сервис - ********.''', reply_markup=m.start_markup)
-    bot.send_message(chat_id, "Сейчас процент: " + str(db.proc) + "\nДля установки процента нажмите: /set_proc\nВведите номер телефона в формате \"+12345678901\"")
+    bot.send_message(chat_id, text=".", reply_markup=m.start_markup)
+    bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
+Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"+12345678901\" \nСейчас процент: " + str(db.proc), reply_markup=m.markup_change_proc)
 
-@bot.message_handler(commands=['set_proc'])
-def set_proc(message):
-    chat_id = message.chat.id
-    msg1 = bot.send_message(chat_id, "Введите новый процент")
 
-    if msg1.text == "/start":
-        bot.register_next_step_handler(msg1,start_handler)
-    else:
-        bot.register_next_step_handler(msg1, newproce)
 
 @bot.message_handler(regexp="\+ *")
 def handle_message(message):
@@ -50,28 +41,18 @@ def handle_message(message):
     number = message.text
     number_in_db = True
     if number_in_db == True:
-        msg = bot.send_message(chat_id, "Номер:\n" + str(number) + "\n\nБаланс:\n" + str(db.amount) + "\nЧто делать с баллами?", reply_markup=m.amount_markup)
-        bot.register_next_step_handler(msg,change_points)
+        bot.send_message(chat_id, "Номер:\n" + str(number) + "\n\nБаланс:\n" + str(db.amount) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
+
     else:
         bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
 
-def change_points(message):
-    chat_id=message.chat.id
-    if message.text=="/start":
-        bot.register_next_step_handler(message,start_handler)
-    else:
-        if message.text == "Добавить":
-            msg = bot.send_message(chat_id, "Сколько добавить?")
-            bot.register_next_step_handler(msg, add_points_two)
-        elif message.text == "Обнулить":
-            db.amount=0
-            bot.send_message(chat_id,"Баланс теперь: " + str(db.amount))
+
 
 def add_points_two(message):
     chat_id = message.chat.id
     if isint(message.text):
         db.amount = db.amount + int(message.text)
-        bot.send_message(chat_id,"Добавлено " + str(message.text) + " бонусов.\nТеперь баланс: " + str(db.amount))
+        bot.send_message(chat_id,"Добавлено " + str(message.text) + " бонусов.\nТеперь баланс: " + str(db.amount), reply_markup=m.markup_start)
     else:
         bot.send_message(chat_id, "Количество добавляемых баллов должно быть числом")
         bot.register_next_step_handler(message,add_points_two)
@@ -90,17 +71,49 @@ def newproce(message):
     chat_id=message.chat.id
     if isint(message.text) == True:
         db.proc=message.text
-        bot.send_message(chat_id,"Процент изменен.\nНовый процент: " + db.proc)
-    elif message.text=="/start":
+        bot.send_message(chat_id,"Процент изменен.\nНовый процент: " + db.proc, reply_markup=m.markup_start)
+    elif message.text == "/start":
         bot.register_next_step_handler(message,start_handler)
     else:
-        bot.send_message(chat_id,"Процент должен быть числом2")
+        bot.send_message(chat_id,"Процент должен быть числом")
         bot.register_next_step_handler(message, newproce)
 
 def np_info(message):
     chat_id=message.chat.id
 
     bot.send_message(chat_id,"Новый процент: ")
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_key(call):
+    chat_id=call.message.chat.id
+    message_id=call.message.message_id
+    if call.data == "change_proc":
+        try:
+            # set_proc(call.message)
+            msg1 = bot.edit_message_text("Введите новый процент",chat_id, message_id)
+            bot.register_next_step_handler(msg1, newproce)
+
+        except:
+            print("Ошибка в change_proc")
+            return
+    if call.data == "start":
+        try:
+            bot.edit_message_text('''\U0000270CЗдравствуйте.\U0000270C\nВас приветствует кэш-бэк сервис - ********.''' +"\nВведите номер телефона в формате \"+12345678901\" \nСейчас процент: " + str(db.proc),chat_id, message_id, reply_markup=m.markup_change_proc)
+        except:
+            print("Ошибка в start")
+            return
+    if call.data == "add_points":
+        try:
+            msg1 = bot.edit_message_text("Сколько добавить?",chat_id,message_id)
+            bot.register_next_step_handler(msg1, add_points_two)
+        except:
+            print("Ошибка в add_points")
+    if call.data == "sub_points":
+        try:
+            db.amount = 0
+            bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id,message_id,reply_markup=m.markup_start)
+        except:
+            print("Ошибка в sub_points")
 
 
 if __name__ == '__main__':
