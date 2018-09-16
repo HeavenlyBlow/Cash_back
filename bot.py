@@ -110,7 +110,9 @@ def dispather(message):
                 if (int(message.text) >= 79000000000)  & (int(message.text) <= 89999999999):
                     number = message.text
                     bot.send_message(message.chat.id, "Введите количество баллов")
-                else:bot.send_message(message.chat.id, "Формат не поддерживается")
+                else:
+                    bot.send_message(message.chat.id, "Формат не поддерживается")
+                    regs = False
 
         # Устанавливает имя если номер пустой и регистрация идет
         if (number == ''):
