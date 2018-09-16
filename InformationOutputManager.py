@@ -23,6 +23,7 @@ def information_request(number):
 
     # Деление строки по переменным
     if (str != 'Не найдено'):
+        print("найдено")
         k = 0
 
         for i in str:
@@ -31,7 +32,9 @@ def information_request(number):
             elif k == 2:
                 point = i
             k += 1
-    else: error_request = True
+    else:
+        error_request = True
+        print("ошибка")
 
 def return_name():
     global name

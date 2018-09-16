@@ -2,7 +2,6 @@
 
 import telebot
 import config
-from InformationOutputManager import displayShow
 from DataBasssee import mySQL
 
 # Укозатель регистрации для фильтрации сообщений
