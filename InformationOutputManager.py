@@ -3,14 +3,17 @@ from DataBasssee import mySQL
 
 # TODO Этот класс должен принимать строку с бд, обрабаытывать ее и формировать сообщение на вывод
 
+
 class displayShow:
 
     name = ''
-    point = 0
+    point = ''
+    error_request = False
+
 
     # Метод получения инфорации с бд по номеру
     def information_request(number):
-        global name, point
+        global name, point, error_request
 
         # Установка соединения
         db_worker = mySQL(database_neme)
@@ -25,6 +28,7 @@ class displayShow:
                     name = str
                 elif i == 2:
                     point = int(str)
+        else: error_request = True
 
     # TODO Если Лешику не нужен номер то слует изменить цикл
 

@@ -53,6 +53,7 @@ def dispather(message):
                     bot.send_message(message.chat.id, "Успешно!")
 
                     regs = False
+                #     TODO не забыть отбработку ошибки регистрации
 
                 else:
                     bot.send_message(message.chat.id, "Уже зарегистрирован")
