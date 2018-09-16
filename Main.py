@@ -65,7 +65,9 @@ def dispather(message):
         # Установка номера телефона если регистрация еще идет
         if (name != ''):
             if(regs is True):
-                if (int(message.text) >= 79000000000  & int(message.text) <= 89999999999 ):
+
+                # if (int(message.text) >= 79000000000  & int(message.text) <= 89999999999 ):
+                if (int(message.text) >= 79000000000):
                     number = message.text
                     bot.send_message(message.chat.id, "Введите количество баллов")
 
