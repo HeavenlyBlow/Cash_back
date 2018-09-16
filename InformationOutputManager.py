@@ -4,32 +4,43 @@ from DataBasssee import mySQL
 # TODO Этот класс должен принимать строку с бд, обрабаытывать ее и формировать сообщение на вывод
 
 
-class displayShow:
-
-    name = ''
-    point = ''
-    error_request = False
 
 
-    # Метод получения инфорации с бд по номеру
-    def information_request(number):
-        global name, point, error_request
+name = ''
+point = ''
+error_request = False
 
-        # Установка соединения
-        db_worker = mySQL(database_neme)
-        str = db_worker.get_information(number)
-        db_worker.close()
 
-        # Деление строки по переменным
-        if (str != 'Не найдено'):
 
-            for i in str:
-                if i == 1:
-                    name = str
-                elif i == 2:
-                    point = int(str)
-        else: error_request = True
+# Метод получения инфорации с бд по номеру
+def information_request(number):
+    global name, point, error_request
 
-    # TODO Если Лешику не нужен номер то слует изменить цикл
+    # Установка соединения
+    db_worker = mySQL(database_neme)
+    str = db_worker.get_information(number)
+    db_worker.close()
+
+    # Деление строки по переменным
+    if (str != 'Не найдено'):
+        k = 0
+
+        for i in str:
+            if k == 1:
+                name = i
+            elif k == 2:
+                point = i
+            k += 1
+    else: error_request = True
+
+def return_name():
+    global name
+    return name
+
+def return_point():
+    global point
+    return point
+
+# TODO Если Лешику не нужен номер то слует изменить цикл
 
 

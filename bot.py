@@ -4,12 +4,17 @@ import telebot
 import markups as m
 import datetime
 import database as db
-from InformationOutputManager import displayShow
+from DataBasssee import mySQL
+from InformationOutputManager import information_request,return_name,return_point,error_request
 
 
 bot = telebot.TeleBot(config.token)
 global money,new_proc
 money = 0
+regs = False
+number = ''
+name = ''
+points = 0
 
 print("   Дата    |   Время  |  user_id  |  Команда")
 
@@ -34,15 +39,25 @@ def start_handler(message):
     bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
 Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"+12345678901\" \nСейчас процент: " + str(db.proc), reply_markup=m.markup_change_proc)
 
+@bot.message_handler(commands=['reg'])
+def registrations(message):
+    global regs, name, points, number
+    regs = True
+    name = ''
+    number = ''
+    points = 0
+    bot.send_message(message.chat.id, "Введите имя")
 
 
 @bot.message_handler(regexp="\+ *")
 def handle_message(message):
     chat_id=message.chat.id
     number = message.text
-    answer_data_base = displayShow.information_request(number)
-    if answer_data_base == True:
-        bot.send_message(chat_id, "Номер:\n" + str(number) + "\n\nБаланс:\n" + str(db.amount) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
+
+    information_request(number)
+
+    if error_request == False:
+        bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
 
     else:
         bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
@@ -60,6 +75,51 @@ def add_points_two(message):
 
 
 @bot.message_handler(content_types=['text'])
+def dispather(message):
+    global regs,num,name,number,points,stage
+    # Алгоритм регистрации
+    if (regs is True):
+
+        # Если имя и номер не пустые то значит отправили баллы, можно делать запрос
+        if (name != ''):
+            if (number != ''):
+
+                points = int(message.text)
+
+                bot.send_message(message.chat.id, "Заносим в базу данных")
+                db_work = mySQL(config.database_neme)
+
+                # Отправляем данные в базу данных
+                if db_work.registration(number, name, points) is True:
+                    bot.send_message(message.chat.id, "Успешно!")
+
+                    regs = False
+                #     TODO не забыть отбработку ошибки регистрации
+
+                else:
+                    bot.send_message(message.chat.id, "Уже зарегистрирован")
+                    regs = False
+                # Если регистрация закончена закрываем бд
+                if(regs is False):
+                    db_work.close()
+
+        # Установка номера телефона если регистрация еще идет
+        if (name != ''):
+            if(regs is True):
+                if (int(message.text) >= 79000000000  & int(message.text) <= 89999999999 ):
+                    number = message.text
+                    bot.send_message(message.chat.id, "Введите количество баллов")
+
+        # Устанавливает имя если номер пустой и регистрация идет
+        if (number == ''):
+            if(regs is True):
+                if message.text != '':
+                    name = message.text
+                    bot.send_message(message.chat.id, "Введите номер телефона")
+                else:
+                    bot.send_message(message.chat.id, "Имя не введено")
+
+
 def text_handler(message):
     console(message.text, message)
     chat_id = message.chat.id
