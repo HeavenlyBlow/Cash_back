@@ -15,6 +15,7 @@ regs = False
 number = ''
 name = ''
 points = 0
+proc = 0
 
 print("   Дата    |   Время  |  user_id  |  Команда")
 
@@ -50,20 +51,6 @@ def registrations(message):
     bot.send_message(message.chat.id, "Введите имя")
 
 
-# @bot.message_handler(regexp="\+ *")
-# def handle_message(message):
-#     chat_id=message.chat.id
-#     number = message.text
-#
-#     information_request(number)
-#
-#     if error_request == False:
-#         bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
-#
-#     else:
-#         bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
-
-
 
 def add_points_two(message):
     chat_id = message.chat.id
@@ -96,6 +83,7 @@ def dispather(message):
 
                     regs = False
                 #     TODO не забыть отбработку ошибки регистрации
+                # TODO Не забыть обработать пойны
 
                 else:
                     bot.send_message(message.chat.id, "Уже зарегистрирован")
@@ -112,7 +100,6 @@ def dispather(message):
                     bot.send_message(message.chat.id, "Введите количество баллов")
                 else:
                     bot.send_message(message.chat.id, "Формат не поддерживается")
-                    regs = False
 
         # Устанавливает имя если номер пустой и регистрация идет
         if (number == ''):
@@ -144,10 +131,14 @@ def text_handler(message):
         bot.send_message(chat_id, "Команда не распознана")
 
 def newproce(message):
-    chat_id=message.chat.id
+    chat_id = message.chat.id
+    global proc
+
     if isint(message.text) == True:
-        db.proc=message.text
-        bot.send_message(chat_id,"Процент изменен.\nНовый процент: " + db.proc, reply_markup=m.markup_start)
+
+        proc = message.text
+        bot.send_message(chat_id,"Процент изменен.\nНовый процент: " + proc, reply_markup=m.markup_start)
+
     elif message.text == "/start":
         bot.register_next_step_handler(message,start_handler)
     else:
