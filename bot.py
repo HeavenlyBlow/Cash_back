@@ -11,7 +11,7 @@ from InformationOutputManager import information_request,return_name,return_poin
 bot = telebot.TeleBot(config.token)
 global money,new_proc
 money = 0
-regs = False
+regs = True
 number = ''
 name = ''
 points = 0
@@ -36,8 +36,8 @@ def isint(s):
 def start_handler(message):
     chat_id = message.chat.id
     console("/start",message)
-    bot.send_message(chat_id, text=".", reply_markup=m.start_markup)
-    msg1=bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
+    bot.send_message(chat_id, text=".", reply_markup= m.start_markup)
+    msg1 = bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
 Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " + str(db.proc), reply_markup=m.markup_change_proc)
     bot.register_next_step_handler(msg1,handle_message)
 
@@ -63,6 +63,11 @@ def add_points_two(message):
 
 
 @bot.message_handler(content_types=['text'])
+
+def print_ld(message):
+    print('да')
+
+
 def dispather(message):
     global regs,num,name,number,points,stage
     # Алгоритм регистрации
@@ -110,16 +115,22 @@ def dispather(message):
                 else:
                     bot.send_message(message.chat.id, "Имя не введено")
 
+
 def handle_message(message):
-    chat_id = message.chat.id
-    number = message.text
 
-    information_request(number)
+    try:
+        if (int(message.text) >= 79000000000)  & (int(message.text) <= 89999999999):
+            chat_id = message.chat.id
+            number = message.text
+            information_request(number)
 
-    if return_error() == False:
-        bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
-    else:
-        bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
+            if return_error() == False:
+                bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
+            else:
+                bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
+    except ValueError:
+        print("Lf")
+        pass
 
 def text_handler(message):
     console(message.text, message)
