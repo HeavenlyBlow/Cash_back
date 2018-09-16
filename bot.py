@@ -4,7 +4,8 @@ import telebot
 import markups as m
 import datetime
 import database as db
-import re
+from InformationOutputManager import displayShow
+
 
 bot = telebot.TeleBot(config.token)
 global money,new_proc
@@ -39,8 +40,8 @@ def start_handler(message):
 def handle_message(message):
     chat_id=message.chat.id
     number = message.text
-    number_in_db = True
-    if number_in_db == True:
+    answer_data_base = displayShow.information_request(number)
+    if answer_data_base == True:
         bot.send_message(chat_id, "Номер:\n" + str(number) + "\n\nБаланс:\n" + str(db.amount) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
 
     else:
