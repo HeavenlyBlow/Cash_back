@@ -36,9 +36,9 @@ def start_handler(message):
     chat_id = message.chat.id
     console("/start",message)
     bot.send_message(chat_id, text=".", reply_markup=m.start_markup)
-    bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
+    msg1=bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
 Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " + str(db.proc), reply_markup=m.markup_change_proc)
-
+    bot.register_next_step_handler(msg1,handle_message)
 
 @bot.message_handler(commands=['reg'])
 def registrations(message):
@@ -49,7 +49,22 @@ def registrations(message):
     points = 0
     bot.send_message(message.chat.id, "Введите имя")
 
-#добавление баллов
+
+# @bot.message_handler(regexp="\+ *")
+# def handle_message(message):
+#     chat_id=message.chat.id
+#     number = message.text
+#
+#     information_request(number)
+#
+#     if error_request == False:
+#         bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
+#
+#     else:
+#         bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
+
+
+
 def add_points_two(message):
     chat_id = message.chat.id
     if isint(message.text):
@@ -108,18 +123,17 @@ def dispather(message):
                 else:
                     bot.send_message(message.chat.id, "Имя не введено")
 
-#ввод номера
-def input_number(message):
+def handle_message(message):
     chat_id = message.chat.id
     number = message.text
-    information_request(number)
-    if return_error() == False:
-        bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(
-            return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
-    else:
-        bot.send_message(chat_id, "Номер " + number + " не зарегистрирован",reply_markup=m.markup_reg)
 
-#обработка посторонних команд
+    information_request(number)
+
+    if return_error() == False:
+        bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
+    else:
+        bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
+
 def text_handler(message):
     console(message.text, message)
     chat_id = message.chat.id
@@ -127,7 +141,7 @@ def text_handler(message):
         bot.send_message(chat_id, "Тут будет помощь")
     else:
         bot.send_message(chat_id, "Команда не распознана")
-#изменение процента
+
 def newproce(message):
     chat_id=message.chat.id
     if isint(message.text) == True:
@@ -174,23 +188,6 @@ def callback_key(call):
             bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id,message_id,reply_markup=m.markup_start)
         except:
             print("Ошибка в sub_points")
-    if call.data == "input_number":
-        try:
-            handle_message(call)
-        except:
-            print("Ошибка в input_number")
-    if call.data == "reg":
-        try:
-            registrations(call.message)
-        except:
-            print("Ошибка в input_number")
-
-
-def handle_message(call):
-    chat_id = call.message.chat.id
-    msg1 = bot.edit_message_text("Введите номер",chat_id, call.message.message_id)
-    bot.register_next_step_handler(msg1,input_number)
-
 
 
 if __name__ == '__main__':
