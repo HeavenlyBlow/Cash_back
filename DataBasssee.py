@@ -29,3 +29,8 @@ class mySQL:
                 return self.cursor.execute("SELECT * FROM Message WHERE number = ?", (number,)).fetchall()[0]
         except IndexError:
             return "Не найдено"
+
+    # def update_point(self, points):
+    #     try:
+    #         while self.connect:
+    #             return self.cu
