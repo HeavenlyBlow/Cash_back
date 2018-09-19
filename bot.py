@@ -4,48 +4,48 @@ import telebot
 import markups as m
 import datetime
 import database as db
- # import InformationOutputManager
+import InformationManager
 from DataBasssee import mySQL
-from InformationOutputManager import information_request, return_name, return_point, return_error, insert_information_registration
+# from InformationOutputManager import information_request, return_name, return_point, return_error, insert_information_registration
 from Math_procent import points_value
 
 bot = telebot.TeleBot(config.token)
-global money, new_proc
+io_manager = InformationManager
+
+# global money, new_proc
+
 money = 0
 regs = False
 number = ''
 name = ''
 points = 0
+date = ''
+time = ''
+
 
 print("   Дата    |   Время  |  user_id  |  Команда")
 
 
 def console(text, message):
     chat_id = message.chat.id
-    print(str(datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')) + " | " + str(
-        datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')) + " | " + str(chat_id) + " | " + text)
+    date = str(datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y'))
+    time = str(datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S'))
+    print(date + " | " + time + " | " + str(chat_id) + " | " + text)
 
 
-def is_int(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
+# При старте делает запрос в бд, при повтороном старте, использует локальный процент
 @bot.message_handler(commands=['start'])
 def start_handler(message):
     chat_id = message.chat.id
     console("/start", message)
     # bot.send_message(chat_id, text="/start", reply_markup=m.start_markup)
     msg1 = bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
-Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " + str(
-        db.proc), reply_markup=m.markup_change_proc)
+Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " +
+                            str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
     # if(regs == False):
     #     bot.register_next_step_handler(msg1, handle_message)
 
-
+# Добавлено создание пользовательской таблицы и забивание времени
 @bot.message_handler(commands=['reg'])
 def registrations_main(message):
     global regs, name, points, number
@@ -62,7 +62,17 @@ def registrations_main(message):
                 points = points_value(int(message.text), db.proc)
                 # Отправляем данные в базу данных
 
-                if insert_information_registration(number, name, points) is True:
+                str_number = io_manager.number_processing(number)
+
+                if io_manager.set_information_for_registration(str_number, name, points) is True:
+
+                    # Создание пользовательской таблицы и забивание времени
+                    io_manager.create_user_table(str_number)
+                    # Записываем дату, время, баллы в таблицу индификатор которой время
+                    io_manager.set_information_in_user_table(str_number, str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')), points)
+
                     bot.send_message(message.chat.id, "Успешно!", reply_markup=m.markup_start)
 
                 else:
@@ -70,7 +80,7 @@ def registrations_main(message):
                 regs = False
 
     except:
-        bot.send_message(message.chat.id, "Ошибка",reply_markup=m.markup_start)
+        bot.send_message(message.chat.id, "Ошибка", reply_markup=m.markup_start)
         regs = False
 
     try:
@@ -95,31 +105,17 @@ def registrations_main(message):
         pause = bot.send_message(message.chat.id, "Повторите ввод имени")
         bot.register_next_step_handler(pause, registrations_main)
 
-
+# Отчистка полей для регистрации
 def clear_registration():
     global regs, name, points, number
     name = ''
     number = ''
     points = 0
 
-
-# @bot.message_handler(regexp="\+ *")
-# def handle_message(message):
-#     chat_id=message.chat.id
-#     number = message.text
-#
-#     information_request(number)
-#
-#     if error_request == False:
-#         bot.send_message(chat_id, "Имя: " + return_name() + "\nНомер:\n" + str(number) + "\n\nБаланс:\n" + str(return_point()) + "\nЧто делать с баллами?", reply_markup=m.markup_change_points)
-#
-#     else:
-#         bot.send_message(chat_id, "Номер " + number + " не зарегистрирован")
-
-
+# Определитель инта вынесен в инфор. менеджер
 def add_points_two(message):
     chat_id = message.chat.id
-    if is_int(message.text):
+    if io_manager.is_int(message.text):
         points = points_value(message.text, db.proc)
         db.amount += points
         bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nТеперь баланс: " + str(db.amount),
@@ -144,66 +140,18 @@ def in_number(message):
     number = message
 
 
-# def dispather(message):
-#     global regs, num, name, number, points, stage
-#     # Алгоритм регистрации
-#     if (regs is True):
-#
-#         # while regs == False:
-#             if (name != ''):
-#                 if (number != ''):
-#                     points = int(message.text)
-#                     bot.send_message(message.chat.id, "Заносим в базу данных")
-#                     db_work = mySQL(config.database_neme)
-#                     # Отправляем данные в базу данных
-#                     if db_work.registration(number, name, points) is True:
-#                         bot.send_message(message.chat.id, "Успешно!")
-#
-#                         regs = False
-#                     #     TODO не забыть отбработку ошибки регистрации
-#
-#                     else:
-#                         bot.send_message(message.chat.id, "Уже зарегистрирован")
-#                         regs = False
-#
-#                 # Если регистрация закончена закрываем бд
-#                 if (regs is False):
-#                     db_work.close()
-#
-#             # Если имя и номер не пустые то значит отправили баллы, можно делать запрос
-#             #  Установка номера телефона если регистрация еще идет
-#             if (name != ''):
-#                 if (regs is True):
-#                     if (int(message.text) >= 79000000000) & (int(message.text) <= 89999999999):
-#                         number = message.text
-#                         bot.send_message(message.chat.id, "Введите количество баллов")
-#
-#                     else:
-#                         bot.send_message(message.chat.id, "Формат не поддерживается")
-#                         regs = False
-#
-#             # Устанавливает имя если номер пустой и регистрация идет
-#             if (number == ''):
-#                 if (regs is True):
-#                     if message.text != '':
-#                         name = message.text
-#                         bot.send_message(message.chat.id, "Введите номер телефона")
-#                     else:
-#                         bot.send_message(message.chat.id, "Имя не введено")
-
-
-
 def handle_message(message):
     if (regs == False):
         chat_id = message.chat.id
         number = message.text
-        information_request(number)
-        if return_error() == False:
-            bot.send_message(chat_id,"Информация о клиенте:\n\n" + "Имя:  " + return_name() + "\nНомер:  " + str(
-                number) + "\n\nБаланс:  " + str(
-                return_point()) , reply_markup=m.markup_change_points)
+        io_manager.information_request(number)
+        if io_manager.return_error() == False:
+            bot.send_message(chat_id,
+                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.return_name() + "\nНомер:  " + str(
+                                 number) + "\n\nБаланс:  " + str(
+                                 io_manager.return_point()), reply_markup=m.markup_change_points)
         else:
-            bot.send_message(chat_id, "Номер " + number + " не зарегистрирован", reply_markup= m.markup_in_number)
+            bot.send_message(chat_id, "Номер " + number + " не зарегистрирован", reply_markup=m.markup_in_number)
 
 
 def text_handler(message):
@@ -214,17 +162,23 @@ def text_handler(message):
     else:
         bot.send_message(chat_id, "Команда не распознана")
 
-
-def newproce(message):
+# Добавлена запись процента в бд
+def new_percent(message):
     chat_id = message.chat.id
-    if is_int(message.text) == True:
-        db.proc = message.text
-        bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + db.proc, reply_markup=m.markup_start)
-    elif message.text == "/start":
-        bot.register_next_step_handler(message, start_handler)
-    else:
-        bot.send_message(chat_id, "Процент должен быть числом")
-        bot.register_next_step_handler(message, newproce)
+    if (io_manager.is_int(message.text) == True):
+
+        if (int(message.text) >= 0) & (int(message.text) <= 10):
+            db.proc = message.text
+
+            if io_manager.update_percent(int(message.text)) is True:
+                bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + db.proc, reply_markup=m.markup_start)
+
+        elif message.text == "/start":
+            bot.register_next_step_handler(message, start_handler)
+
+        else:
+            bot.send_message(chat_id, "Процент должен быть числом")
+            bot.register_next_step_handler(message, new_percent)
 
 
 def np_info(message):
@@ -258,7 +212,7 @@ def callback_key(call):
     if call.data == "change_proc":
         try:
             msg1 = bot.edit_message_text("Введите новый процент", chat_id, message_id)
-            bot.register_next_step_handler(msg1, newproce)
+            bot.register_next_step_handler(msg1, new_percent)
 
         except:
             print("Ошибка в change_proc")

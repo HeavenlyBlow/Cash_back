@@ -3,6 +3,8 @@
 import telebot
 import config
 from DataBasssee import mySQL
+import InformationManager
+import datetime
 
 # Укозатель регистрации для фильтрации сообщений
 regs = False
@@ -11,8 +13,11 @@ number = ''
 name = ''
 points = 0
 
+
+
 bot = telebot.TeleBot(config.token)
 
+io_menedger = InformationManager
 
 # displayShow.information_request(123) - Пример запроса к displayShow, где 123 номер
 
@@ -47,10 +52,15 @@ def dispather(message):
                 bot.send_message(message.chat.id, "Заносим в базу данных")
                 db_work = mySQL(config.database_neme)
 
+                str_number = io_menedger.number_processing(number)
+
                 # Отправляем данные в базу данных
                 if db_work.registration(number, name, points) is True:
                     bot.send_message(message.chat.id, "Успешно!")
-
+                    io_menedger.create_user_table(str_number)
+                    io_menedger.set_information_in_user_table(str_number, str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')), points)
                     regs = False
                 #     TODO не забыть отбработку ошибки регистрации
 

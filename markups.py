@@ -5,7 +5,7 @@ start_markup.row('Помощь')
 
 markup_change_points = types.InlineKeyboardMarkup(row_width=2)
 points_button_add = types.InlineKeyboardButton('Добавить',callback_data="add_points")
-points_button_sub = types.InlineKeyboardButton('Обнулить',callback_data="sub_points")
+points_button_sub = types.InlineKeyboardButton('Списать',callback_data="sub_points")
 points_button_back = types.InlineKeyboardButton('В главное меню', callback_data="start")
 markup_change_points.add(points_button_add,points_button_sub, points_button_back)
 
