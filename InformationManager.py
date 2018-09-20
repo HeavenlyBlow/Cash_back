@@ -6,13 +6,16 @@ from DataBasssee import mySQL
 
 name = ''
 point = ''
+num = ''
+add_id = ''
 error_request = False
 percent = 0
 is_first = True
 
+
 # Метод получения инфорации с бд по номеру
 def information_request(number):
-    global name, point, error_request
+    global name, point, error_request, num, add_id
 
     # Установка соединения
     db_worker = mySQL(database_neme)
@@ -25,19 +28,29 @@ def information_request(number):
         k = 0
         error_request = False
         for i in str:
-            if k == 1:
+            if k == 3:
+                add_id = i
+                return
+
+            if k == 0:
+                num = i
+                k += 1
+
+            elif k == 1:
                 name = i
-            elif k == 2:
+                k += 1
+            else:
                 point = i
-            k += 1
+                k += 1
+
     else:
         error_request = True
         print("ошибка")
 
 
-def set_information_in_user_table(number, date, time, point):
+def set_information_in_user_table(id_add, number, date, time, point):
     db_worker = mySQL(database_neme)
-    if db_worker.set_information_in_user_table(number, date, time, point):
+    if db_worker.set_information_in_user_table(number, date, time, point, id_add):
         db_worker.close()
         return True
     else:
@@ -45,10 +58,10 @@ def set_information_in_user_table(number, date, time, point):
         return False
 
 
-def set_information_for_registration(number, name, points):
+def set_information_for_registration(number, name, points, add_id):
     db_worker = mySQL(database_neme)
 
-    if db_worker.registration(number, name, points) is True:
+    if db_worker.registration(number, name, points, add_id) is True:
         db_worker.close()
         return True
     else:
@@ -67,7 +80,6 @@ def create_user_table(number):
         db_worker.close()
 
 
-
 def is_int(value):
     try:
         int(value)
@@ -84,14 +96,19 @@ def number_processing(number):
 
 
 def update_point(number, date, time, point):
-
     db_worker = mySQL(database_neme)
-    if db_worker.update_point(number, date, time, point) is True:
-        db_worker.close()
-        return True
+
+    add_id = int(return_add_id()) + 1
+
+    if db_worker.update_point(number, point, str(add_id)) is True:
+        if db_worker.set_information_in_user_table(number, date, time, point, add_id) is True:
+
+            db_worker.close()
+            return True
     else:
         db_worker.close()
         return False
+
 
 def update_percent(per):
     global percent
@@ -103,22 +120,33 @@ def update_percent(per):
     else:
         return False
 
+# Метод получения процента, срабатывает только при первом включении
 def get_percent():
     global is_first, percent
 
     if is_first is True:
 
         db_worker = mySQL(database_neme)
-
         per = str(db_worker.get_percent())
-        percent = int(per[2])
+
+        # Т.к из бд выходит список, проверяется 4 символ, если не равен , значит число = 10, иначе <10
+        if per[3] == ",":
+            percent = int(per[2])
+
+        else:
+            st = per[2] + per[3]
+            percent = int(st)
 
         is_first = False
+
         return percent
 
-    else: return percent
+    else:
+        return percent
 
-
+def return_number():
+    global num
+    return num
 
 def return_name():
     global name
@@ -129,6 +157,9 @@ def return_point():
     global point
     return point
 
+def return_add_id():
+    global add_id
+    return add_id
 
 def return_error():
     global error_request

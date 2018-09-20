@@ -17,8 +17,14 @@ points = 0
 
 bot = telebot.TeleBot(config.token)
 
+
 io_menedger = InformationManager
 
+
+databs = mySQL(config.database_neme)
+
+
+databs.update_point('9991891088', '1000', '4')
 # displayShow.information_request(123) - Пример запроса к displayShow, где 123 номер
 
 

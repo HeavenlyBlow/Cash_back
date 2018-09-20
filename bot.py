@@ -64,12 +64,13 @@ def registrations_main(message):
 
                 str_number = io_manager.number_processing(number)
 
-                if io_manager.set_information_for_registration(str_number, name, points) is True:
+                add_id = 1
+                if io_manager.set_information_for_registration(str_number, name, points, add_id) is True:
 
                     # Создание пользовательской таблицы и забивание времени
                     io_manager.create_user_table(str_number)
                     # Записываем дату, время, баллы в таблицу индификатор которой время
-                    io_manager.set_information_in_user_table(str_number, str(
+                    io_manager.set_information_in_user_table(add_id, str_number, str(
                         datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
                         datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')), points)
 
@@ -80,7 +81,7 @@ def registrations_main(message):
                 regs = False
 
     except:
-        bot.send_message(message.chat.id, "Ошибка", reply_markup=m.markup_start)
+        bot.send_message(message.chat.id, "Ошибка регистрации", reply_markup=m.markup_start)
         regs = False
 
     try:
@@ -116,9 +117,19 @@ def clear_registration():
 def add_points_two(message):
     chat_id = message.chat.id
     if io_manager.is_int(message.text):
-        points = points_value(message.text, db.proc)
-        db.amount += points
-        bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nТеперь баланс: " + str(db.amount),
+
+        points = points_value(int(message.text), io_manager.get_percent())
+        db_point = points + io_manager.return_point()
+
+        # получение обработанного номера без 1 символов
+        str_number = io_manager.return_number()
+
+        io_manager.update_point(str_number, str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
+                                str(db_point))
+
+        bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nТеперь баланс: " + str(db_point),
                          reply_markup=m.markup_start)
     else:
         bot.send_message(chat_id, "Количество добавляемых баллов должно быть числом")
@@ -144,12 +155,15 @@ def handle_message(message):
     if (regs == False):
         chat_id = message.chat.id
         number = message.text
-        io_manager.information_request(number)
+
+        str_number = io_manager.number_processing(number)
+
+        io_manager.information_request(str_number)
         if io_manager.return_error() == False:
             bot.send_message(chat_id,
-                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.return_name() + "\nНомер:  " + str(
-                                 number) + "\n\nБаланс:  " + str(
-                                 io_manager.return_point()), reply_markup=m.markup_change_points)
+                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.return_name() + "\nНомер:  " +
+                                 io_manager.return_number() + "\n\nБаланс:  " +
+                                 str(io_manager.return_point()), reply_markup=m.markup_change_points)
         else:
             bot.send_message(chat_id, "Номер " + number + " не зарегистрирован", reply_markup=m.markup_in_number)
 
@@ -177,8 +191,13 @@ def new_percent(message):
             bot.register_next_step_handler(message, start_handler)
 
         else:
-            bot.send_message(chat_id, "Процент должен быть числом")
+            bot.send_message(chat_id, "Процент не должен быть выше 10")
             bot.register_next_step_handler(message, new_percent)
+
+
+    else:
+        bot.send_message(chat_id, "Процент должен быть числом")
+        bot.register_next_step_handler(message, new_percent)
 
 
 def np_info(message):
@@ -200,6 +219,7 @@ def callback_key(call):
         except:
             print("Ошибка ввода номер")
             return
+
     if call.data == "reg":
         try:
 
@@ -209,14 +229,16 @@ def callback_key(call):
         except:
             print("Ошибка рег")
             return
+
     if call.data == "change_proc":
         try:
-            msg1 = bot.edit_message_text("Введите новый процент", chat_id, message_id)
+            msg1 = bot.edit_message_text("Введите процент не превышающий 10", chat_id, message_id)
             bot.register_next_step_handler(msg1, new_percent)
 
         except:
             print("Ошибка в change_proc")
             return
+
     if call.data == "start":
         try:
             bot.edit_message_text(
@@ -225,12 +247,14 @@ def callback_key(call):
         except:
             print("Ошибка в start")
             return
+
     if call.data == "add_points":
         try:
             msg1 = bot.edit_message_text("Введите сумму покупки", chat_id, message_id)
             bot.register_next_step_handler(msg1, add_points_two)
         except:
             print("Ошибка в add_points")
+
     if call.data == "sub_points":
         try:
             db.amount = 0
