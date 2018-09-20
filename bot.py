@@ -13,7 +13,7 @@ bot = telebot.TeleBot(config.token)
 io_manager = InformationManager
 
 # global money, new_proc
-
+global temp
 money = 0
 regs = False
 number = ''
@@ -36,12 +36,8 @@ def console(text, message):
 # При старте делает запрос в бд, при повтороном старте, использует локальный процент
 @bot.message_handler(commands=['start'])
 def start_handler(message):
-    chat_id = message.chat.id
-    console("/start", message)
-    # bot.send_message(chat_id, text="/start", reply_markup=m.start_markup)
-    msg1 = bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
-Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " +
-                            str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
+    bot.send_message(message.chat.id,"Бот запущен",reply_markup=m.first_markup)
+    handler_start(message)
     # if(regs == False):
     #     bot.register_next_step_handler(msg1, handle_message)
 
@@ -49,7 +45,10 @@ def start_handler(message):
 @bot.message_handler(commands=['reg'])
 def registrations_main(message):
     global regs, name, points, number
-
+    if message.text == "В главное меню":
+        start_handler(message)
+        regs = False
+        return
     if regs == False:
         clear_registration()
 
@@ -74,14 +73,14 @@ def registrations_main(message):
                         datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
                         datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')), points)
 
-                    bot.send_message(message.chat.id, "Успешно!", reply_markup=m.markup_start)
+                    bot.send_message(message.chat.id, "Успешно!")
 
                 else:
-                    bot.send_message(message.chat.id, "Уже зарегистрирован", reply_markup=m.markup_start)
+                    bot.send_message(message.chat.id, "Уже зарегистрирован")
                 regs = False
 
     except:
-        bot.send_message(message.chat.id, "Ошибка регистрации", reply_markup=m.markup_start)
+        bot.send_message(message.chat.id, "Ошибка регистрации")
         regs = False
 
     try:
@@ -106,6 +105,18 @@ def registrations_main(message):
         pause = bot.send_message(message.chat.id, "Повторите ввод имени")
         bot.register_next_step_handler(pause, registrations_main)
 
+#Обработка кнопки "В главное меню"
+@bot.message_handler(func = lambda message: message.text =="В главное меню")
+def handler_start(message):
+    chat_id = message.chat.id
+    console("В главное меню", message)
+    # bot.send_message(chat_id, text="/start", reply_markup=m.start_markup)
+    msg1 = bot.send_message(chat_id, '''\U0000270CЗдравствуйте.\U0000270C
+    Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " +
+                            str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
+
+
+
 # Отчистка полей для регистрации
 def clear_registration():
     global regs, name, points, number
@@ -116,6 +127,9 @@ def clear_registration():
 # Определитель инта вынесен в инфор. менеджер
 def add_points_two(message):
     chat_id = message.chat.id
+    if message.text == "В главное меню":
+        start_handler(message)
+        return
     if io_manager.is_int(message.text):
 
         points = points_value(int(message.text), io_manager.get_percent())
@@ -152,6 +166,9 @@ def in_number(message):
 
 
 def handle_message(message):
+    if message.text == "В главное меню":
+        handler_start(message)
+        return
     if (regs == False):
         chat_id = message.chat.id
         number = message.text
@@ -167,7 +184,12 @@ def handle_message(message):
         else:
             bot.send_message(chat_id, "Номер " + number + " не зарегистрирован", reply_markup=m.markup_in_number)
 
+@bot.message_handler(commands=["stop"])
+def bot_stop(message):
+    bot.stop_bot()
 
+#Обработка посторонних сообщений
+@bot.message_handler(content_types="text")
 def text_handler(message):
     console(message.text, message)
     chat_id = message.chat.id
@@ -179,16 +201,16 @@ def text_handler(message):
 # Добавлена запись процента в бд
 def new_percent(message):
     chat_id = message.chat.id
-    if (io_manager.is_int(message.text) == True):
+    if message.text == "В главное меню":
+        handler_start(message)
+        return
+    elif (io_manager.is_int(message.text) == True):
 
         if (int(message.text) >= 0) & (int(message.text) <= 10):
             db.proc = message.text
 
             if io_manager.update_percent(int(message.text)) is True:
-                bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + db.proc, reply_markup=m.markup_start)
-
-        elif message.text == "/start":
-            bot.register_next_step_handler(message, start_handler)
+                bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + db.proc)
 
         else:
             bot.send_message(chat_id, "Процент не должен быть выше 10")
@@ -202,14 +224,30 @@ def new_percent(message):
 
 def np_info(message):
     chat_id = message.chat.id
-
     bot.send_message(chat_id, "Новый процент: ")
 
-
-@bot.callback_query_handler(func=lambda call: True)
+#Обработка кнопок
+@bot.callback_query_handler(func=lambda call: call.data != "change_proc")
 def callback_key(call):
     chat_id = call.message.chat.id
     message_id = call.message.message_id
+
+    #Обработка кнопки показа последних 10 действий
+    if call.data == "history":
+        pass
+        #bot.edit_message_text(,call.message.chat.id,call.message.message_id)
+
+
+    if call.data == "change_proc":
+        try:
+            msg1 = bot.edit_message_text("Введите процент не превышающий 10", call.message.chat.id,
+                                         call.message.message_id)
+            print(msg1.text)
+            bot.register_next_step_handler(msg1, new_percent)
+        except:
+            print("Ошибка change_proc")
+            return
+
 
     if call.data == "input_number":
         try:
@@ -222,30 +260,11 @@ def callback_key(call):
 
     if call.data == "reg":
         try:
-
             mag1 = bot.edit_message_text("Введите имя", chat_id, message_id)
             bot.register_next_step_handler(mag1, registrations_main)
 
         except:
             print("Ошибка рег")
-            return
-
-    if call.data == "change_proc":
-        try:
-            msg1 = bot.edit_message_text("Введите процент не превышающий 10", chat_id, message_id)
-            bot.register_next_step_handler(msg1, new_percent)
-
-        except:
-            print("Ошибка в change_proc")
-            return
-
-    if call.data == "start":
-        try:
-            bot.edit_message_text(
-                '''\U0000270CЗдравствуйте.\U0000270C\nВас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " + str(
-                    db.proc), chat_id, message_id, reply_markup=m.markup_change_proc)
-        except:
-            print("Ошибка в start")
             return
 
     if call.data == "add_points":
