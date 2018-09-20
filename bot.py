@@ -227,7 +227,7 @@ def np_info(message):
     bot.send_message(chat_id, "Новый процент: ")
 
 #Обработка кнопок
-@bot.callback_query_handler(func=lambda call: call.data != "change_proc")
+@bot.callback_query_handler(func=lambda call: True)
 def callback_key(call):
     chat_id = call.message.chat.id
     message_id = call.message.message_id
