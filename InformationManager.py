@@ -4,6 +4,9 @@ from DataBasssee import mySQL
 # TODO Этот класс должен принимать строку с бд, обрабаытывать ее и формировать сообщение на вывод
 
 
+
+
+
 name = ''
 point = ''
 num = ''
@@ -14,7 +17,7 @@ is_first = True
 
 
 # Метод получения инфорации с бд по номеру
-def information_request(number):
+def get_information_request(number):
     global name, point, error_request, num, add_id
 
     # Установка соединения
@@ -46,6 +49,43 @@ def information_request(number):
     else:
         error_request = True
         print("ошибка")
+
+
+def get_information_from_user_table(number, operations):
+    global error_request
+    db_worker = mySQL(database_neme)
+    error_request = False
+    add_id = return_add_id()
+    id = add_id - operations
+
+    k = 0
+    answer = "Информация по " + str(operations) + " последним опрециям: \n\n Дата           |Время     |Баллы\n\n"
+
+    if (id <= add_id):
+
+        while id < add_id:
+            prom_1 = db_worker.get_information_in_user_table(number, add_id)
+            if prom_1 != "Ошибка":
+                add_id -= 1
+                k = 0
+                for i in prom_1:
+                    if k == 1:
+                        answer += str(i) + " | "
+
+                    elif k == 2:
+                        answer += str(i) + " |   "
+
+                    if k == 3:
+                        answer += str(i) + "\n"
+
+                    k += 1
+            else:
+                return "Ошибка в базе данных"
+
+    else:
+        error_request = True
+
+    return answer
 
 
 def set_information_in_user_table(id_add, number, date, time, point):
@@ -102,7 +142,6 @@ def update_point(number, date, time, point):
 
     if db_worker.update_point(number, point, str(add_id)) is True:
         if db_worker.set_information_in_user_table(number, date, time, point, add_id) is True:
-
             db_worker.close()
             return True
     else:
@@ -119,6 +158,25 @@ def update_percent(per):
         return True
     else:
         return False
+
+
+def how_much_to_sub_point(input_point):
+    global error_request, point
+    error_request = False
+    int_input_point = int(input_point)
+
+    if (int_input_point == point):
+        point = 0
+        return point
+
+    elif (int_input_point > point):
+        error_request = True
+        return 0
+
+    if (int_input_point < point):
+        point -= int_input_point
+        return point
+
 
 # Метод получения процента, срабатывает только при первом включении
 def get_percent():
@@ -144,9 +202,11 @@ def get_percent():
     else:
         return percent
 
+
 def return_number():
     global num
     return num
+
 
 def return_name():
     global name
@@ -157,9 +217,11 @@ def return_point():
     global point
     return point
 
+
 def return_add_id():
     global add_id
     return add_id
+
 
 def return_error():
     global error_request

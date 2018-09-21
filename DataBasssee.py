@@ -32,18 +32,28 @@ class mySQL:
             return "Не найдено"
 
     def create_user_table(self, number):
-        with self.connect:
-            self.cursor.execute(
+        try:
+            with self.connect:
+                self.cursor.execute(
                 """CREATE TABLE '""" + number + """' (id_add int UNIQUE, Date text,time text, point int)""")
+        except:
+            print("Ошибка в create_user_table")
 
     def set_information_in_user_table(self, number, date, time, point, id_add):
-        with self.connect:
-            self.cursor.execute("""INSERT INTO '""" + number + """' VALUES (?,?,?,?)""", (id_add, date, time, point,))
-            return True
+        try:
+            with self.connect:
+                self.cursor.execute("""INSERT INTO '""" + number + """' VALUES (?,?,?,?)""", (id_add, date, time, point,))
+                return True
+        except:
+            print("Ошибка в set_information_in_user_table")
 
-    # def get_information_in_user_table(self, number):
-    #     with self.connect:
-    #         return self.cursor.execute("SELECT * FROM " + number + "")
+    def get_information_in_user_table(self, number, id):
+        try:
+            with self.connect:
+                return self.cursor.execute("""SELECT * FROM '""" + number + """' WHERE id_add = ?""", (id,)).fetchall()[0]
+
+        except:
+            return "Ошибка"
 
     def update_point(self, number, point, id_add):
         try:

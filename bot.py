@@ -162,12 +162,7 @@ def manage_admins(message):
     else:
         bot.send_message(message.chat.id,"У вас нет прав заходить сюда")
 
-# Отчистка полей для регистрации
-def clear_registration():
-    global regs, name, points, number
-    name = ''
-    number = ''
-    points = 0
+
 
 # Определитель инта вынесен в инфор. менеджер
 def add_points_two(message):
@@ -188,26 +183,35 @@ def add_points_two(message):
                         datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
                                 str(db_point))
 
-        bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nТеперь баланс: " + str(db_point),
-                         reply_markup=m.markup_start)
+        bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nБаланс: " + str(db_point))
     else:
         bot.send_message(chat_id, "Количество добавляемых баллов должно быть числом")
         bot.register_next_step_handler(message, add_points_two)
 
+def sub_points(message):
+    chat_id = message.chat.id
+    if message.text == "В главное меню":
+        start_handler(message)
+        return
+    if io_manager.is_int(message.text) is True:
+        input_point = str(io_manager.how_much_to_sub_point(message.text))
 
-def in_point(message):
-    global points
-    points = int(message)
+        if io_manager.error_request is False:
 
+            str_number = io_manager.return_number()
+            io_manager.update_point(str_number, str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
+                                    input_point)
 
-def in_name(message):
-    global name
-    name = message
+            bot.send_message(chat_id, "Списано " + message.text + " бонусов. \nБаланс:  " + input_point)
+        else:
+            bot.send_message(chat_id, "Сумма списания не должна превышать: " + io_manager.return_point())
+            bot.register_next_step_handler(message, sub_points)
 
-
-def in_number(message):
-    global number
-    number = message
+    else:
+        bot.send_message(chat_id, "Количество списываемых баллов должно быть числом")
+        bot.register_next_step_handler(message, add_points_two)
 
 
 def handle_message(message):
@@ -232,6 +236,9 @@ def handle_message(message):
     else:
         bot.send_message(message.chat.id,"У вас нет прав заходить сюда")
 
+@bot.message_handler(commands=["stop"])
+def bot_stop(message):
+    bot.stop_bot()
 
 #Обработка посторонних сообщений
 @bot.message_handler(content_types="text")
@@ -275,6 +282,29 @@ def np_info(message):
     chat_id = message.chat.id
     bot.send_message(chat_id, "Новый процент: ")
 
+def history(message):
+
+    chat_id = message.chat.id
+    if message.text == "В главное меню":
+        start_handler(message)
+        return
+
+    if io_manager.is_int(message.text) is True:
+        operations = int(message.text)
+
+        if (operations != 0):
+            answer = io_manager.get_information_from_user_table(io_manager.return_number(), operations)
+            bot.send_message(chat_id, answer)
+
+        else:
+            bot.send_message(chat_id, "Количество операций должно быть больше 0")
+            bot.register_next_step_handler(message, history)
+
+    else:
+        bot.send_message(chat_id, "Количество операций должно быть числом")
+        bot.register_next_step_handler(message, history)
+
+
 def add_admin_name(message):
     global admin_name
     if message.text == "В главное меню":
@@ -309,11 +339,13 @@ def callback_key(call):
             name_new_admin = bot.edit_message_text("Введите имя нового админа",call.message.chat.id,call.message.message_id)
             bot.register_next_step_handler(name_new_admin, add_admin_name)
 
+            # Обработка кнопки показа последних 10 действий
 
-        # Обработка кнопки показа последних 10 действий
         if call.data == "history":
-            pass
-            # bot.edit_message_text(,call.message.chat.id,call.message.message_id)
+            msg1 = bot.edit_message_text("Введите количество операций не превышающих " + str(io_manager.return_add_id())
+                                         , call.message.chat.id, call.message.message_id)
+
+            bot.register_next_step_handler(msg1, history)
 
         if call.data == "change_proc":
             try:
@@ -353,13 +385,48 @@ def callback_key(call):
 
         if call.data == "sub_points":
             try:
-                db.amount = 0
-                bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id, message_id,
-                                      reply_markup=m.markup_start)
+                msg1 = bot.edit_message_text(
+                    "Введите количество списываемых баллов не превышающих:  " + str(io_manager.return_point())
+                    , chat_id, message_id)
+                bot.register_next_step_handler(msg1, sub_points)
+                # bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id, message_id, reply_markup=m.markup_start)
             except:
                 print("Ошибка в sub_points")
     else:
         bot.send_message(call.message.chat.id,"У вас нет прав заходить сюда")
+
+
+def console(text, message):
+    chat_id = message.chat.id
+    date = str(datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y'))
+    time = str(datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S'))
+    print(date + " | " + time + " | " + str(chat_id) + " | " + text)
+
+
+# Отчистка полей для регистрации
+def clear_registration():
+    global regs, name, points, number
+    name = ''
+    number = ''
+    points = 0
+
+
+
+def in_name(message):
+    global name
+    name = message
+
+
+def in_number(message):
+    global number
+    number = message
+
+
+def in_point(message):
+    global points
+    points = int(message)
+
+
 
 if __name__ == '__main__':
     bot.polling(none_stop=True)
