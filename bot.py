@@ -322,11 +322,11 @@ def add_admin_id(message):
     try:
         admin_id = message.text
         db.admins[admin_name] = int(admin_id)
-        print("Добавление администратора " + admin_name + ":" + admin_id)
-        bot.send_message(message.chat.id,"Администратор " + admin_name + " добавлен!")
+        print("Добавление администратора: name=" + admin_name + ", ID=" + admin_id)
+        bot.send_message(message.chat.id, "Администратор " + admin_name + " добавлен!")
         manage_admins(message)
-    except:
-        bot.send_message(message.chat.id,"Ошибка добавления")
+    except ValueError:
+        bot.send_message(message.chat.id,"ID должно быть цифровым", reply_markup=m.markup_repeat_new_admin)
 
 #Удаление админа
 def delete_admin_name(message):

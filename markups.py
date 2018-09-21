@@ -47,3 +47,7 @@ markup_delete = types.ReplyKeyboardRemove()
 markup_repeat_set_delete_admin = types.InlineKeyboardMarkup()
 repeat_delete_button = types.InlineKeyboardButton(text = "Ввести заново",callback_data="delete_admin")
 markup_repeat_set_delete_admin.add(repeat_delete_button)
+
+markup_repeat_new_admin = types.InlineKeyboardMarkup()
+repeat_new_admin = types.InlineKeyboardButton(text = "Ввести заново",callback_data="add_admin")
+markup_repeat_new_admin.add(repeat_new_admin)
