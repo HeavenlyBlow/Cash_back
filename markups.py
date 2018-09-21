@@ -3,8 +3,10 @@ first_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 start_btn = types.KeyboardButton("В главное меню")
 first_markup.add(start_btn)
 
-
-
+first_markup_main_admin = types.ReplyKeyboardMarkup(resize_keyboard=True)
+manage_admins_btn = types.KeyboardButton("Администрирование")
+first_markup_main_admin.add(start_btn)
+first_markup_main_admin.add(manage_admins_btn)
 
 
 markup_change_points = types.InlineKeyboardMarkup(row_width=2)
@@ -35,4 +37,8 @@ markup_reg = types.InlineKeyboardMarkup(row_width=1)
 button_reg = types.InlineKeyboardButton('Зарегистрировать',callback_data="reg")
 markup_reg.add(button_reg)
 
+markup_manage_admins = types.InlineKeyboardMarkup()
+add_admins = types.InlineKeyboardButton(text="Добавить админа", callback_data="add_admin")
+delete_admins = types.InlineKeyboardButton(text="Удалить админа", callback_data="delete_admin")
+markup_manage_admins.add(add_admins,delete_admins)
 
