@@ -11,7 +11,7 @@ markup_change_points = types.InlineKeyboardMarkup(row_width=2)
 points_button_add = types.InlineKeyboardButton('Добавить',callback_data="add_points")
 points_button_sub = types.InlineKeyboardButton('Списать',callback_data="sub_points")
 points_button_back = types.InlineKeyboardButton('В главное меню', callback_data="start")
-history_button = types.InlineKeyboardButton("Последние 10 операций", callback_data="history")
+history_button = types.InlineKeyboardButton("История операций", callback_data="history")
 markup_change_points.add(points_button_add,points_button_sub,history_button)
 
 markup_change_proc = types.InlineKeyboardMarkup()

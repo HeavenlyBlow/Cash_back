@@ -26,13 +26,6 @@ time = ''
 print("   Дата    |   Время  |  user_id  |  Команда")
 
 
-def console(text, message):
-    chat_id = message.chat.id
-    date = str(datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y'))
-    time = str(datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S'))
-    print(date + " | " + time + " | " + str(chat_id) + " | " + text)
-
-
 # При старте делает запрос в бд, при повтороном старте, использует локальный процент
 @bot.message_handler(commands=['start'])
 def start_handler(message):
@@ -115,14 +108,40 @@ def handler_start(message):
     Вас приветствует кэш-бэк сервис - ********.''' + "\nВведите номер телефона в формате \"70000000000 или 80000000000\" \nСейчас процент: " +
                             str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
 
+@bot.message_handler(commands=["stop"])
+def bot_stop(message):
+    bot.stop_bot()
+
+#Обработка посторонних сообщений
+@bot.message_handler(content_types="text")
+def text_handler(message):
+    console(message.text, message)
+    chat_id = message.chat.id
+    if message.text == "Помощь":
+        bot.send_message(chat_id, "Тут будет помощь")
+    # else:
+    #     bot.send_message(chat_id, "Команда не распознана")
 
 
-# Отчистка полей для регистрации
-def clear_registration():
-    global regs, name, points, number
-    name = ''
-    number = ''
-    points = 0
+def handle_message(message):
+    if message.text == "В главное меню":
+        handler_start(message)
+        return
+    if (regs == False):
+        chat_id = message.chat.id
+        number = message.text
+
+        str_number = io_manager.number_processing(number)
+
+        io_manager.get_information_request(str_number)
+        if io_manager.return_error() == False:
+            bot.send_message(chat_id,
+                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.return_name() + "\nНомер:  " +
+                                 io_manager.return_number() + "\n\nБаланс:  " +
+                                 str(io_manager.return_point()), reply_markup=m.markup_change_points)
+        else:
+            bot.send_message(chat_id, "Номер " + number + " не зарегистрирован", reply_markup=m.markup_in_number)
+
 
 # Определитель инта вынесен в инфор. менеджер
 def add_points_two(message):
@@ -143,60 +162,35 @@ def add_points_two(message):
                         datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
                                 str(db_point))
 
-        bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nТеперь баланс: " + str(db_point),
-                         reply_markup=m.markup_start)
+        bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nБаланс: " + str(db_point))
     else:
         bot.send_message(chat_id, "Количество добавляемых баллов должно быть числом")
         bot.register_next_step_handler(message, add_points_two)
 
-
-def in_point(message):
-    global points
-    points = int(message)
-
-
-def in_name(message):
-    global name
-    name = message
-
-
-def in_number(message):
-    global number
-    number = message
-
-
-def handle_message(message):
-    if message.text == "В главное меню":
-        handler_start(message)
-        return
-    if (regs == False):
-        chat_id = message.chat.id
-        number = message.text
-
-        str_number = io_manager.number_processing(number)
-
-        io_manager.information_request(str_number)
-        if io_manager.return_error() == False:
-            bot.send_message(chat_id,
-                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.return_name() + "\nНомер:  " +
-                                 io_manager.return_number() + "\n\nБаланс:  " +
-                                 str(io_manager.return_point()), reply_markup=m.markup_change_points)
-        else:
-            bot.send_message(chat_id, "Номер " + number + " не зарегистрирован", reply_markup=m.markup_in_number)
-
-@bot.message_handler(commands=["stop"])
-def bot_stop(message):
-    bot.stop_bot()
-
-#Обработка посторонних сообщений
-@bot.message_handler(content_types="text")
-def text_handler(message):
-    console(message.text, message)
+def sub_points(message):
     chat_id = message.chat.id
-    if message.text == "Помощь":
-        bot.send_message(chat_id, "Тут будет помощь")
+    if message.text == "В главное меню":
+        start_handler(message)
+        return
+    if io_manager.is_int(message.text) is True:
+        input_point = str(io_manager.how_much_to_sub_point(message.text))
+
+        if io_manager.error_request is False:
+
+            str_number = io_manager.return_number()
+            io_manager.update_point(str_number, str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
+                        datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
+                                    input_point)
+
+            bot.send_message(chat_id, "Списано " + message.text + " бонусов. \nБаланс:  " + input_point)
+        else:
+            bot.send_message(chat_id, "Сумма списания не должна превышать: " + io_manager.return_point())
+            bot.register_next_step_handler(message, sub_points)
+
     else:
-        bot.send_message(chat_id, "Команда не распознана")
+        bot.send_message(chat_id, "Количество списываемых баллов должно быть числом")
+        bot.register_next_step_handler(message, add_points_two)
 
 # Добавлена запись процента в бд
 def new_percent(message):
@@ -210,7 +204,7 @@ def new_percent(message):
             db.proc = message.text
 
             if io_manager.update_percent(int(message.text)) is True:
-                bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + db.proc)
+                bot.send_message(chat_id, "Процент изменен.\n\nНовый процент: " + db.proc)
 
         else:
             bot.send_message(chat_id, "Процент не должен быть выше 10")
@@ -222,9 +216,30 @@ def new_percent(message):
         bot.register_next_step_handler(message, new_percent)
 
 
-def np_info(message):
+def history(message):
+
     chat_id = message.chat.id
-    bot.send_message(chat_id, "Новый процент: ")
+    if message.text == "В главное меню":
+        start_handler(message)
+        return
+
+    if io_manager.is_int(message.text) is True:
+        operations = int(message.text)
+
+        if (operations != 0):
+            answer = io_manager.get_information_from_user_table(io_manager.return_number(), operations)
+            bot.send_message(chat_id, answer)
+
+        else:
+            bot.send_message(chat_id, "Количество операций должно быть больше 0")
+            bot.register_next_step_handler(message, history)
+
+    else:
+        bot.send_message(chat_id, "Количество операций должно быть числом")
+        bot.register_next_step_handler(message, history)
+
+
+
 
 #Обработка кнопок
 @bot.callback_query_handler(func=lambda call: True)
@@ -233,9 +248,13 @@ def callback_key(call):
     message_id = call.message.message_id
 
     #Обработка кнопки показа последних 10 действий
+
     if call.data == "history":
-        pass
-        #bot.edit_message_text(,call.message.chat.id,call.message.message_id)
+        msg1 = bot.edit_message_text("Введите количество операций не превышающих " + str(io_manager.return_add_id())
+                                     ,call.message.chat.id,call.message.message_id)
+
+        bot.register_next_step_handler(msg1, history)
+
 
 
     if call.data == "change_proc":
@@ -276,10 +295,44 @@ def callback_key(call):
 
     if call.data == "sub_points":
         try:
-            db.amount = 0
-            bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id, message_id, reply_markup=m.markup_start)
+            msg1 = bot.edit_message_text("Введите количество списываемых баллов не превышающих:  " + str(io_manager.return_point())
+                                         , chat_id, message_id)
+            bot.register_next_step_handler(msg1, sub_points)
+            # bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id, message_id, reply_markup=m.markup_start)
         except:
             print("Ошибка в sub_points")
+
+
+def console(text, message):
+    chat_id = message.chat.id
+    date = str(datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y'))
+    time = str(datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S'))
+    print(date + " | " + time + " | " + str(chat_id) + " | " + text)
+
+
+# Отчистка полей для регистрации
+def clear_registration():
+    global regs, name, points, number
+    name = ''
+    number = ''
+    points = 0
+
+
+
+def in_name(message):
+    global name
+    name = message
+
+
+def in_number(message):
+    global number
+    number = message
+
+
+def in_point(message):
+    global points
+    points = int(message)
+
 
 
 if __name__ == '__main__':
