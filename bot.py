@@ -5,16 +5,15 @@ import markups as m
 import datetime
 import database as db
 import InformationManager
+from console import console
+from CheckUser import check_user, get_key
+import vars
 from DataBasssee import mySQL
 # from InformationOutputManager import information_request, return_name, return_point, return_error, insert_information_registration
 from Math_procent import points_value
 
-
 bot = telebot.TeleBot(config.token)
 io_manager = InformationManager
-
-# global money, new_proc
-global temp
 
 money = 0
 regs = False
@@ -24,49 +23,26 @@ points = 0
 date = ''
 time = ''
 
-
 print("   Дата    |   Время  |  user_id  |  Команда")
-
-
-def console(text, message):
-    chat_id = message.chat.id
-    date = str(datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y'))
-    time = str(datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S'))
-    print(date + " | " + time + " | " + str(chat_id) + " | " + text)
-
-def get_key(d, value):
-    for k, v in d.items():
-        if v == value:
-            return k
-
-def check_user(id):
-    global accept_user
-    global admin_is_main
-    admin_is_main = False
-    for i in db.admins.values():
-        if i == id:
-            accept_user = get_key(db.admins,i)
-            return True
-
-    for j in db.main_admins.values():
-        if j == id:
-            accept_user = get_key(db.main_admins,j)
-            admin_is_main = True
-            return True
 
 # При старте делает запрос в бд, при повтороном старте, использует локальный процент
 @bot.message_handler(commands=['start'])
 def start_handler(message):
-    global admin_is_main
-    if check_user(message.chat.id):
-        print("Авторизация user - " + str(accept_user) + " прошла успешно!")
-        if admin_is_main == True:
-            bot.send_message(message.chat.id, "Бот запущен", reply_markup=m.first_markup_main_admin)
+    try:
+        if check_user(message.chat.id):
+            print("Авторизация user - " + str(vars.accept_user) + " прошла успешно!")
+            if vars.admin_is_main == True:
+                bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup_main_admin)
+            else:
+                bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup)
+            handler_start(message)
         else:
-            bot.send_message(message.chat.id, "Бот запущен", reply_markup=m.first_markup)
-        handler_start(message)
-    else:
-        bot.send_message(message.chat.id,"У вас нет прав заходить сюда")
+            bot.send_message(message.chat.id,
+                             "У вас нет прав заходить сюда. \nСообщите администратору ваш ID = " + str(message.chat.id),
+                             reply_markup=m.markup_delete)
+    except:
+        bot.send_message(message.chat.id,"Ошибка авторизации")
+
     # if(regs == False):
     #     bot.register_next_step_handler(msg1, handle_message)
 
@@ -79,11 +55,13 @@ def registrations_main(message):
             start_handler(message)
             regs = False
             return
+        elif message.text == "Администрирование":
+            manage_admins(message)
+            regs = False
+            return
         if regs == False:
             clear_registration()
-
         regs = True
-
         try:
             if (name != ""):
                 if (number != ""):
@@ -142,25 +120,32 @@ def registrations_main(message):
 #Обработка кнопки "В главное меню"
 @bot.message_handler(func = lambda message: message.text == "В главное меню")
 def handler_start(message):
-    chat_id = message.chat.id
-    console("В главное меню", message)
-    # bot.send_message(chat_id, text="/start", reply_markup=m.start_markup)
-    msg1 = bot.send_message(chat_id, '\U0001F44BЗдравствуйте\U0001F44B\nВас приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
-                            str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
+    if check_user(message.chat.id):
+        chat_id = message.chat.id
+        console("В главное меню", message)
+        bot.send_message(chat_id,'\U0001F44BПривет, ' + str(vars.accept_user) + '\U0001F44B\nТебя приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
+                                str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
+    else:
+        bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
 
+#Обработка кнопки "Администрирование"
 @bot.message_handler(func = lambda message: message.text == "Администрирование")
 def manage_admins(message):
-    global admin_is_main
-    print_admins="Админ | ID\n\n"
-    for i in db.admins:
-        print_admins += str(i) + "  |  " + str(db.admins.get(i)) + "\n"
-
-    # Главный админ
-    if check_user(message.chat.id) & admin_is_main:
-        bot.send_message(message.chat.id, text=print_admins, reply_markup=m.markup_manage_admins)
-        pass
+    if db.admins == {}:
+        global print_admins
+        print_admins = "Список администраторов пуст!"
     else:
-        bot.send_message(message.chat.id,"У вас нет прав заходить сюда")
+        print_admins = "Список администраторов:\nАдминистратор | ID\n\n"
+        for i in db.admins:
+            print_admins += str(i) + "  |  " + str(db.admins.get(i)) + "\n"
+    try:
+        # Главный админ
+        if check_user(message.chat.id) & vars.admin_is_main:
+            bot.send_message(message.chat.id, text=print_admins, reply_markup=m.markup_manage_admins)
+        else:
+            bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
+    except:
+        bot.send_message(message.chat.id,"Ошибка в определении администратора")
 
 
 
@@ -169,6 +154,9 @@ def add_points_two(message):
     chat_id = message.chat.id
     if message.text == "В главное меню":
         start_handler(message)
+        return
+    elif message.text == "Администрирование":
+        manage_admins(message)
         return
     if io_manager.is_int(message.text):
 
@@ -192,6 +180,9 @@ def sub_points(message):
     chat_id = message.chat.id
     if message.text == "В главное меню":
         start_handler(message)
+        return
+    elif message.text == "Администрирование":
+        manage_admins(message)
         return
     if io_manager.is_int(message.text) is True:
         input_point = str(io_manager.how_much_to_sub_point(message.text))
@@ -219,13 +210,16 @@ def handle_message(message):
         if message.text == "В главное меню":
             handler_start(message)
             return
+        elif message.text == "Администрирование":
+            manage_admins(message)
+            return
         if (regs == False):
             chat_id = message.chat.id
             number = message.text
 
             str_number = io_manager.number_processing(number)
 
-            io_manager.information_request(str_number)
+            io_manager.get_information_request(str_number)
             if io_manager.return_error() == False:
                 bot.send_message(chat_id,
                                  "Информация о клиенте:\n\n" + "Имя:  " + io_manager.return_name() + "\nНомер:  " +
@@ -236,19 +230,6 @@ def handle_message(message):
     else:
         bot.send_message(message.chat.id,"У вас нет прав заходить сюда")
 
-@bot.message_handler(commands=["stop"])
-def bot_stop(message):
-    bot.stop_bot()
-
-#Обработка посторонних сообщений
-@bot.message_handler(content_types="text")
-def text_handler(message):
-    console(message.text, message)
-    chat_id = message.chat.id
-    if message.text == "Помощь":
-        bot.send_message(chat_id, "Тут будет помощь")
-    else:
-        bot.send_message(chat_id, "Команда не распознана")
 
 # Добавлена запись процента в бд
 def new_percent(message):
@@ -256,6 +237,9 @@ def new_percent(message):
         chat_id = message.chat.id
         if message.text == "В главное меню":
             handler_start(message)
+            return
+        elif message.text == "Администрирование":
+            manage_admins(message)
             return
         elif (io_manager.is_int(message.text) == True):
 
@@ -279,6 +263,9 @@ def np_info(message):
     if message.text == "В главное меню":
         handler_start(message)
         return
+    elif message.text == "Администрирование":
+        manage_admins(message)
+        return
     chat_id = message.chat.id
     bot.send_message(chat_id, "Новый процент: ")
 
@@ -287,6 +274,9 @@ def history(message):
     chat_id = message.chat.id
     if message.text == "В главное меню":
         start_handler(message)
+        return
+    elif message.text == "Администрирование":
+        manage_admins(message)
         return
 
     if io_manager.is_int(message.text) is True:
@@ -304,28 +294,60 @@ def history(message):
         bot.send_message(chat_id, "Количество операций должно быть числом")
         bot.register_next_step_handler(message, history)
 
-
+#Ввод имени нового админа
 def add_admin_name(message):
     global admin_name
     if message.text == "В главное меню":
         handler_start(message)
         return
+    elif message.text == "Администрирование":
+        manage_admins(message)
+        return
     try:
         admin_name = message.text
-        msg = bot.send_message(message.chat.id,"Введите ID нового админа")
+        msg = bot.send_message(message.chat.id,"Введите ID нового администратора")
         bot.register_next_step_handler(msg, add_admin_id)
     except:
         bot.send_message(message.chat.id,"Ошибка добавления")
 
-
+#Ввод ид нового админа
 def add_admin_id(message):
     global admin_name
+    if message.text == "В главное меню":
+        handler_start(message)
+        return
+    elif message.text == "Администрирование":
+        manage_admins(message)
+        return
     try:
         admin_id = message.text
         db.admins[admin_name] = int(admin_id)
+        print("Добавление администратора " + admin_name + ":" + admin_id)
+        bot.send_message(message.chat.id,"Администратор " + admin_name + " добавлен!")
         manage_admins(message)
     except:
         bot.send_message(message.chat.id,"Ошибка добавления")
+
+#Удаление админа
+def delete_admin_name(message):
+    global print_admins
+    if message.text == "В главное меню":
+        handler_start(message)
+        return
+    elif message.text == "Администрирование":
+        manage_admins(message)
+        return
+    try:
+        if message.text in db.admins.keys():
+            db.admins.pop(message.text)
+            print("Удаление администратора " + message.text)
+            bot.send_message(message.chat.id, "Администратор " + message.text + " удален!")
+            manage_admins(message)
+        else:
+            bot.send_message(message.chat.id, "Администратора с таким именем нет.\n" + print_admins,reply_markup=m.markup_repeat_set_delete_admin)
+
+    except:
+        bot.send_message(message.chat.id, "Ошибка удаления")
 
 
 #Обработка кнопок
@@ -336,11 +358,16 @@ def callback_key(call):
         message_id = call.message.message_id
         #Добавление админа
         if call.data == "add_admin":
-            name_new_admin = bot.edit_message_text("Введите имя нового админа",call.message.chat.id,call.message.message_id)
+            name_new_admin = bot.edit_message_text("Введите имя нового администратора",call.message.chat.id,call.message.message_id)
             bot.register_next_step_handler(name_new_admin, add_admin_name)
 
-            # Обработка кнопки показа последних 10 действий
+        #Удаление админа
+        if call.data == "delete_admin":
+            name_delete_admin = bot.edit_message_text("Введите имя администратора, которого хотите удалить.\n" + print_admins,
+                                                      call.message.chat.id,call.message.message_id)
+            bot.register_next_step_handler(name_delete_admin, delete_admin_name)
 
+        # Обработка кнопки показа последних 10 действий
         if call.data == "history":
             msg1 = bot.edit_message_text("Введите количество операций не превышающих " + str(io_manager.return_add_id())
                                          , call.message.chat.id, call.message.message_id)
@@ -396,13 +423,6 @@ def callback_key(call):
         bot.send_message(call.message.chat.id,"У вас нет прав заходить сюда")
 
 
-def console(text, message):
-    chat_id = message.chat.id
-    date = str(datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y'))
-    time = str(datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S'))
-    print(date + " | " + time + " | " + str(chat_id) + " | " + text)
-
-
 # Отчистка полей для регистрации
 def clear_registration():
     global regs, name, points, number
@@ -427,6 +447,8 @@ def in_point(message):
     points = int(message)
 
 
-
-if __name__ == '__main__':
-    bot.polling(none_stop=True)
+try:
+    if __name__ == '__main__':
+        bot.polling(none_stop=True)
+except:
+    print("!!!!!!Ошибка цикла!!!!!!")

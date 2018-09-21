@@ -48,7 +48,7 @@ def get_information_request(number):
 
     else:
         error_request = True
-        print("ошибка")
+        print("не найдено")
 
 
 def get_information_from_user_table(number, operations):
@@ -59,7 +59,7 @@ def get_information_from_user_table(number, operations):
     id = add_id - operations
 
     k = 0
-    answer = "Информация по " + str(operations) + " последним опрециям: \n\n Дата           |Время     |Баллы\n\n"
+    answer = "Информация по " + str(operations) + " последним операциям: \n\n Дата           |Время     |Баллы\n\n"
 
     if (id <= add_id):
 

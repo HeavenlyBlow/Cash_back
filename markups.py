@@ -38,7 +38,12 @@ button_reg = types.InlineKeyboardButton('Зарегистрировать',callb
 markup_reg.add(button_reg)
 
 markup_manage_admins = types.InlineKeyboardMarkup()
-add_admins = types.InlineKeyboardButton(text="Добавить админа", callback_data="add_admin")
-delete_admins = types.InlineKeyboardButton(text="Удалить админа", callback_data="delete_admin")
+add_admins = types.InlineKeyboardButton(text="Добавить администратора", callback_data="add_admin")
+delete_admins = types.InlineKeyboardButton(text="Удалить администратора", callback_data="delete_admin")
 markup_manage_admins.add(add_admins,delete_admins)
 
+markup_delete = types.ReplyKeyboardRemove()
+
+markup_repeat_set_delete_admin = types.InlineKeyboardMarkup()
+repeat_delete_button = types.InlineKeyboardButton(text = "Ввести заново",callback_data="delete_admin")
+markup_repeat_set_delete_admin.add(repeat_delete_button)
