@@ -131,6 +131,8 @@ def handler_start(message):
 #Обработка кнопки "Администрирование"
 @bot.message_handler(func = lambda message: message.text == "Администрирование")
 def manage_admins(message):
+    db.reload_admin_list()
+    print(db.admins)
     if db.admins == {}:
         global print_admins
         print_admins = "Список администраторов пуст!"
@@ -304,9 +306,13 @@ def add_admin_name(message):
         manage_admins(message)
         return
     try:
+        db.reload_admin_list()
         admin_name = message.text
-        msg = bot.send_message(message.chat.id,"Введите ID нового администратора")
-        bot.register_next_step_handler(msg, add_admin_id)
+        if admin_name not in db.admins.keys():
+            msg = bot.send_message(message.chat.id, "Введите ID нового администратора")
+            bot.register_next_step_handler(msg, add_admin_id)
+        else:
+            bot.send_message(message.chat.id,"Такое имя уже занято",reply_markup=m.markup_repeat_new_admin)
     except:
         bot.send_message(message.chat.id,"Ошибка добавления")
 
@@ -321,7 +327,8 @@ def add_admin_id(message):
         return
     try:
         admin_id = message.text
-        db.admins[admin_name] = int(admin_id)
+        io_manager.set_information_in_list_admins(int(admin_id),admin_name)
+        db.reload_admin_list()
         print("Добавление администратора: name=" + admin_name + ", ID=" + admin_id)
         bot.send_message(message.chat.id, "Администратор " + admin_name + " добавлен!")
         manage_admins(message)
@@ -338,6 +345,7 @@ def delete_admin_name(message):
         manage_admins(message)
         return
     try:
+        db.reload_admin_list()
         if message.text in db.admins.keys():
             db.admins.pop(message.text)
             print("Удаление администратора " + message.text)

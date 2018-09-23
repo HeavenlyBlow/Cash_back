@@ -23,6 +23,13 @@ class mySQL:
     def close(self):
         self.connect.close()
 
+    def get_admins(self):
+        try:
+            with self.connect:
+                return self.cursor.execute("SELECT * FROM Admins").fetchall()
+        except IndexError:
+            return "Не найдено"
+
     # Метод получения инфорации по номера возращает строки из бд, или не найдено
     def get_information(self, number):
         try:
@@ -38,6 +45,11 @@ class mySQL:
                 """CREATE TABLE '""" + number + """' (id_add int UNIQUE, Date text,time text, point int)""")
         except:
             print("Ошибка в create_user_table")
+
+    def set_information_in_list_admins(self, user_id, admin_name):
+        with self.connect:
+            self.cursor.execute("INSERT INTO admins VALUES (?,?)", (str(user_id), admin_name,))
+            return True
 
     def set_information_in_user_table(self, number, date, time, point, id_add):
         try:
@@ -72,7 +84,7 @@ class mySQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Percent").fetchall()
         except:
-            print("Ошибка в get_percent")
+            print("Ошибка в get_percent(скорее всего не нафден файл с таблицей)")
 
     def update_percent(self, percent):
         try:

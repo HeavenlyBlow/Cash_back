@@ -7,15 +7,14 @@ def get_key(d, value):
 
 def check_user(id):
     try:
-        for i in db.admins.values():
-            if i == id:
-                vars.accept_user = get_key(db.admins, i)
-                return True
-
         for j in db.main_admins.values():
             if j == id:
                 vars.accept_user = get_key(db.main_admins, j)
                 vars.admin_is_main = True
+                return True
+        for i in db.admins.values():
+            if i == id:
+                vars.accept_user = get_key(db.admins, i)
                 return True
     except:
         print("Ошибка в функции проверки юзера")

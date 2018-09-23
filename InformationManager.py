@@ -15,11 +15,38 @@ error_request = False
 percent = 0
 is_first = True
 
+def get_admins_request():
+    global error_request, id_admin, name_admin
+    db_worker = mySQL(database_neme)
+    str = db_worker.get_admins()
+    db_worker.close()
+    # Деление строки по переменным
+    if (str != 'Не найдено'):
+        print("найдено")
+        k = 0
+        id_admin = []
+        name_admin = []
+        nmb_of_notes = 0
+        error_request = False
+
+        for note in str:
+            for drop in note:
+                if k == 0:
+                    id_admin.append(drop)
+                    k += 1
+                elif k == 1:
+                    name_admin.append(drop)
+                    k += 1
+                    nmb_of_notes += 1
+            k = 0
+    else:
+        error_request = True
+        print("не найдено админа")
+
 
 # Метод получения инфорации с бд по номеру
 def get_information_request(number):
     global name, point, error_request, num, add_id
-
     # Установка соединения
     db_worker = mySQL(database_neme)
     str = db_worker.get_information(number)
@@ -87,6 +114,14 @@ def get_information_from_user_table(number, operations):
 
     return answer
 
+def set_information_in_list_admins(user_id, admin_name):
+    db_worker = mySQL(database_neme)
+    if db_worker.set_information_in_list_admins(user_id, admin_name):
+        db_worker.close()
+        return True
+    else:
+        db_worker.close()
+        return False
 
 def set_information_in_user_table(id_add, number, date, time, point):
     db_worker = mySQL(database_neme)
@@ -202,6 +237,14 @@ def get_percent():
     else:
         return percent
 
+
+def return_name_admin():
+    global name_admin
+    return name_admin
+
+def return_id_admin():
+    global id_admin
+    return id_admin
 
 def return_number():
     global num
