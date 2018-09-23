@@ -16,6 +16,7 @@ main_admins = {'Алексей' : 339425291,
                'Андрей' : 447165655,
                'Кастрюля' : 467989150}
 admins = {}
+#Обновить переменную admins
 def reload_admin_list():
     io.get_admins_request()
     admins.clear()
