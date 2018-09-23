@@ -131,10 +131,10 @@ def handler_start(message):
 #Обработка кнопки "Администрирование"
 @bot.message_handler(func = lambda message: message.text == "Администрирование")
 def manage_admins(message):
+    global print_admins
     db.reload_admin_list()
     print(db.admins)
     if db.admins == {}:
-        global print_admins
         print_admins = "Список администраторов пуст!"
     else:
         print_admins = "Список администраторов:\nАдминистратор | ID\n\n"
@@ -328,7 +328,6 @@ def add_admin_id(message):
     try:
         admin_id = message.text
         io_manager.set_information_in_list_admins(int(admin_id),admin_name)
-        db.reload_admin_list()
         print("Добавление администратора: name=" + admin_name + ", ID=" + admin_id)
         bot.send_message(message.chat.id, "Администратор " + admin_name + " добавлен!")
         manage_admins(message)
@@ -344,23 +343,21 @@ def delete_admin_name(message):
     elif message.text == "Администрирование":
         manage_admins(message)
         return
-    try:
-        db.reload_admin_list()
-        if message.text in db.admins.keys():
-            db.admins.pop(message.text)
-            print("Удаление администратора " + message.text)
-            bot.send_message(message.chat.id, "Администратор " + message.text + " удален!")
-            manage_admins(message)
-        else:
-            bot.send_message(message.chat.id, "Администратора с таким именем нет.\n" + print_admins,reply_markup=m.markup_repeat_set_delete_admin)
-
-    except:
-        bot.send_message(message.chat.id, "Ошибка удаления")
+    db.reload_admin_list()
+    if message.text in db.admins.keys():
+        io_manager.delete_information_from_list_admins(message.text)
+        print("Удаление администратора " + message.text)
+        bot.send_message(message.chat.id, "Администратор " + message.text + " удален!")
+        manage_admins(message)
+    else:
+        bot.send_message(message.chat.id, "Администратора с таким именем нет.\n" + print_admins,
+                         reply_markup=m.markup_repeat_set_delete_admin)
 
 
 #Обработка кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def callback_key(call):
+    global print_admins
     if check_user(call.message.chat.id):
         chat_id = call.message.chat.id
         message_id = call.message.message_id

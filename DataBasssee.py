@@ -46,6 +46,11 @@ class mySQL:
         except:
             print("Ошибка в create_user_table")
 
+    def delete_information_from_list_admins(self, admin_name):
+        with self.connect:
+            self.cursor.execute("DELETE FROM admins WHERE admin_name = ?", (admin_name,))
+            return True
+
     def set_information_in_list_admins(self, user_id, admin_name):
         with self.connect:
             self.cursor.execute("INSERT INTO admins VALUES (?,?)", (str(user_id), admin_name,))

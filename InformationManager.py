@@ -114,6 +114,15 @@ def get_information_from_user_table(number, operations):
 
     return answer
 
+def delete_information_from_list_admins(admin_id):
+    db_worker = mySQL(database_neme)
+    if db_worker.delete_information_from_list_admins(admin_id):
+        db_worker.close()
+        return True
+    else:
+        db_worker.close()
+        return False
+
 def set_information_in_list_admins(user_id, admin_name):
     db_worker = mySQL(database_neme)
     if db_worker.set_information_in_list_admins(user_id, admin_name):
