@@ -62,7 +62,7 @@ class mySQL:
                 self.cursor.execute("""INSERT INTO '""" + number + """' VALUES (?,?,?,?)""", (id_add, date, time, point,))
                 return True
         except:
-            print("Ошибка в set_information_in_user_table")
+            print("Ошибка в db.set_information_in_user_table ")
 
     def get_information_in_user_table(self, number, id):
         try:

@@ -22,6 +22,7 @@ name = ''
 points = 0
 date = ''
 time = ''
+number_is_correct = True
 
 print("   Дата    |   Время  |  user_id  |  Команда")
 
@@ -50,7 +51,7 @@ def start_handler(message):
 @bot.message_handler(commands=['reg'])
 def registrations_main(message):
     if check_user(message.chat.id):
-        global regs, name, points, number
+        global regs, name, points, number,number_is_correct
         if message.text == "В главное меню":
             start_handler(message)
             regs = False
@@ -92,13 +93,15 @@ def registrations_main(message):
             regs = False
 
         try:
-            if (name != ''):
+            if (name):
                 if (regs is True):
                     if (int(message.text) >= 79000000000) & (int(message.text) <= 89999999999):
+                        number_is_correct = True
                         in_number(message.text)
                         next_steep = bot.send_message(message.chat.id, "Введите сумму")
                         bot.register_next_step_handler(next_steep, registrations_main)
-
+                    else:
+                        number_is_correct = False
         except:
             pause = bot.send_message(message.chat.id, "Повторите ввод номера")
             bot.register_next_step_handler(pause, registrations_main)
@@ -106,10 +109,14 @@ def registrations_main(message):
         try:
             if (number == ''):
                 if (regs is True):
-                    in_name(message.text)
-                    next_steep = bot.send_message(message.chat.id,
-                                                  "Введите номер телефона \nв формате 7---------- или 8----------")
-                    bot.register_next_step_handler(next_steep, registrations_main)
+                    if (number_is_correct == True):
+                        in_name(message.text)
+                        next_steep = bot.send_message(message.chat.id,
+                                                      "Введите номер телефона \nв формате 7---------- или 8----------")
+                        bot.register_next_step_handler(next_steep, registrations_main)
+                    else:
+                        msg = bot.send_message(message.chat.id, "Введен номер в не корректном формате.\n Повторите ввод номера в формате 7---------- или 8----------")
+                        bot.register_next_step_handler(msg, registrations_main)
         except:
             pause = bot.send_message(message.chat.id, "Повторите ввод имени")
             bot.register_next_step_handler(pause, registrations_main)
@@ -148,6 +155,8 @@ def manage_admins(message):
             bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
     except:
         bot.send_message(message.chat.id,"Ошибка в определении администратора")
+
+
 
 
 
@@ -197,7 +206,8 @@ def sub_points(message):
                         datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
                                     input_point)
 
-            bot.send_message(chat_id, "Списано " + message.text + " бонусов. \nБаланс:  " + input_point)
+            bot.send_message(chat_id, "Списано " + message.text + " баллов. \nБаланс:  " + input_point,
+                             reply_markup=m.markup_back_to_info2)
         else:
             bot.send_message(chat_id, "Сумма списания не должна превышать: " + io_manager.return_point())
             bot.register_next_step_handler(message, sub_points)
@@ -375,7 +385,7 @@ def callback_key(call):
         # Обработка кнопки показа последних 10 действий
         if call.data == "history":
             msg1 = bot.edit_message_text("Введите количество операций не превышающих " + str(io_manager.return_add_id())
-                                         , call.message.chat.id, call.message.message_id)
+                                         , call.message.chat.id, call.message.message_id, reply_markup=m.markup_back_to_info1)
 
             bot.register_next_step_handler(msg1, history)
 
@@ -418,12 +428,18 @@ def callback_key(call):
         if call.data == "sub_points":
             try:
                 msg1 = bot.edit_message_text(
-                    "Введите количество списываемых баллов не превышающих:  " + str(io_manager.return_point())
-                    , chat_id, message_id)
+                    "Введите количество списываемых баллов не превышающих " + str(io_manager.return_point())
+                    , chat_id, message_id,reply_markup=m.markup_back_to_info1)
                 bot.register_next_step_handler(msg1, sub_points)
                 # bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id, message_id, reply_markup=m.markup_start)
             except:
                 print("Ошибка в sub_points")
+
+        if call.data == "back_to_info":
+            bot.edit_message_text("Информация о клиенте:\n\n" + "Имя:  " + io_manager.return_name() + "\nНомер:  " +
+                                 io_manager.return_number() + "\n\nБаланс:  " +
+                                 str(io_manager.return_point()),call.message.chat.id, call.message.message_id,
+                                  reply_markup=m.markup_change_points)
     else:
         bot.send_message(call.message.chat.id,"У вас нет прав заходить сюда")
 
