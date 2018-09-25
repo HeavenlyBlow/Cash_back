@@ -79,7 +79,7 @@ def registrations_main(message):
             if (name != ""):
                 if (number != ""):
 
-                    points = points_value(int(message.text), ad.proc)
+                    points = points_value(int(message.text), io_manager.percent)
                     # Отправляем данные в базу данных
 
                     str_number = io_manager.number_processing(number)
@@ -142,6 +142,10 @@ def handler_start(message):
         bot.send_message(chat_id, '\U0001F44BПривет, ' + str(
             Vars.accept_user) + '\U0001F44B\nТебя приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
                          str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
+
+    elif io_manager == None:
+        bot.send_message(message.chat.id, "Бот не запущен!")
+        start_handler(message)
     else:
         bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
 
@@ -150,6 +154,7 @@ def handler_start(message):
 @bot.message_handler(func=lambda message: message.text == "Администрирование")
 def manage_admins(message):
     global print_admins
+    io_manager = buffer.get_buffer(message.chat.id)
     ad.reload_admin_list()
     print(ad.admins)
     if ad.admins == {}:
@@ -160,8 +165,13 @@ def manage_admins(message):
             print_admins += str(i) + "  |  " + str(ad.admins.get(i)) + "\n"
     try:
         # Главный админ
-        if (check_user(message.chat.id) & (Vars.admin_is_main)):
+        if (check_user(message.chat.id) & (Vars.admin_is_main) & (io_manager != None)):
             bot.send_message(message.chat.id, text=print_admins, reply_markup=m.markup_manage_admins)
+
+        elif io_manager == None:
+            bot.send_message(message.chat.id, "Бот не запущен")
+            start_handler(message)
+
         else:
             bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
     except:
@@ -391,6 +401,12 @@ def callback_key(call):
         chat_id = call.message.chat.id
         message_id = call.message.message_id
         io_manager = buffer.get_buffer(chat_id)
+
+        if io_manager == None:
+            bot.send_message(chat_id, "Бот не запущен")
+            start_handler(call.message)
+
+
         # Добавление админа
         if call.data == "add_admin":
             name_new_admin = bot.edit_message_text("Введите имя нового администратора", call.message.chat.id,

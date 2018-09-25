@@ -2,7 +2,7 @@ from Config import database_neme
 from DataBaseManager import SQL
 
 
-# TODO Этот класс должен принимать строку с бд, обрабаытывать ее и формировать сообщение на вывод
+# Этот класс должен принимать строку с бд, обрабаытывать ее и формировать сообщение на вывод
 
 
 class input_output_manager:
@@ -17,8 +17,8 @@ class input_output_manager:
     id_admin = []
     name_admin = []
 
-    def __init__(self):
-        pass
+    # def __init__(self):
+    #     pass
 
     def get_admins_request(self):
         db_worker = SQL(database_neme)
@@ -240,39 +240,3 @@ class input_output_manager:
         else:
             return self.percent
 
-
-# def return_name_admin():
-#     global name_admin
-#     return name_admin
-#
-#
-# def return_id_admin():
-#     global id_admin
-#     return id_admin
-#
-#
-# def return_number():
-#     global num
-#     return num
-#
-#
-# def return_name():
-#     global name
-#     return name
-#
-#
-# def return_point():
-#     global point
-#     return point
-#
-#
-# def return_add_id():
-#     global add_id
-#     return add_id
-#
-#
-# def return_error():
-#     global error_request
-#     return error_request
-
-# TODO Если Лешику не нужен номер то слует изменить цикл
