@@ -102,7 +102,7 @@ def registrations_main(message):
 
         except:
             bot.send_message(message.chat.id, "Ошибка регистрации")
-            print("Краткий лог: " + name + " " + number + " " + points)
+            print("Краткий лог: " + str(name) + " " + str(number) + " " + str(points))
             regs = False
 
         try:
@@ -131,12 +131,12 @@ def registrations_main(message):
     else:
         bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
 
-
+# TODO Баг: если в чате есть сообщение в главное меню он не сможет его обработать так как нет никаких ссылок
 # Обработка кнопки "В главное меню"
 @bot.message_handler(func=lambda message: message.text == "В главное меню")
 def handler_start(message):
     io_manager = buffer.get_buffer(message.chat.id)
-    if check_user(message.chat.id):
+    if (check_user(message.chat.id) & (io_manager != None)):
         chat_id = message.chat.id
         console("В главное меню", message)
         bot.send_message(chat_id, '\U0001F44BПривет, ' + str(
@@ -160,7 +160,7 @@ def manage_admins(message):
             print_admins += str(i) + "  |  " + str(ad.admins.get(i)) + "\n"
     try:
         # Главный админ
-        if check_user(message.chat.id) & Vars.admin_is_main:
+        if (check_user(message.chat.id) & (Vars.admin_is_main)):
             bot.send_message(message.chat.id, text=print_admins, reply_markup=m.markup_manage_admins)
         else:
             bot.send_message(message.chat.id, "У вас нет прав заходить сюда")

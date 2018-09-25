@@ -17,7 +17,7 @@ class SQL:
                 self.cursor.execute("INSERT INTO Message VALUES (?,?,?,?)", (number, name, points, add_id,))
                 return True
         except sqlite3.IntegrityError:
-            print("Ошибка в registrations:" + number + " " + name + " " + points + " " + add_id)
+            print("Ошибка в registrations:" + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
             return False
 
     #     Закрытие соединения с базой данных
