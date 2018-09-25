@@ -1,5 +1,9 @@
-import database as db
-import vars
+import Vars
+
+
+ad = ''
+
+
 def get_key(d, value):
     for k, v in d.items():
         if v == value:
@@ -7,15 +11,21 @@ def get_key(d, value):
 
 def check_user(id):
     try:
-        for j in db.main_admins.values():
+        for j in ad.main_admins.values():
             if j == id:
-                vars.accept_user = get_key(db.main_admins, j)
-                vars.admin_is_main = True
+                Vars.accept_user = get_key(ad.main_admins, j)
+                Vars.admin_is_main = True
                 return True
-        for i in db.admins.values():
+        for i in ad.admins.values():
             if i == id:
-                vars.accept_user = get_key(db.admins, i)
+                Vars.accept_user = get_key(ad.admins, i)
                 return True
     except:
         print("Ошибка в функции проверки юзера")
     return False
+
+# передает в функцию ссылку на администраторс
+def set_admins_objects(administrators):
+    global ad
+    ad = administrators
+

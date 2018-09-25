@@ -4,7 +4,7 @@
 import sqlite3
 
 
-class mySQL:
+class SQL:
     # Инициализация класса бд, установка соединение и запуск курсора
     def __init__(self, database):
         self.connect = sqlite3.connect(database)
@@ -17,6 +17,7 @@ class mySQL:
                 self.cursor.execute("INSERT INTO Message VALUES (?,?,?,?)", (number, name, points, add_id,))
                 return True
         except sqlite3.IntegrityError:
+            print("Ошибка в registrations:" + number + " " + name + " " + points + " " + add_id)
             return False
 
     #     Закрытие соединения с базой данных
@@ -99,3 +100,4 @@ class mySQL:
         except:
             print("Ошибка в update_percent")
             return False
+
