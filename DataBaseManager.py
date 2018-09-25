@@ -58,12 +58,9 @@ class SQL:
             return True
 
     def set_information_in_user_table(self, number, date, time, point, id_add):
-        try:
-            with self.connect:
-                self.cursor.execute("""INSERT INTO '""" + number + """' VALUES (?,?,?,?)""", (id_add, date, time, point,))
-                return True
-        except:
-            print("Ошибка в db.set_information_in_user_table ")
+        with self.connect:
+            self.cursor.execute("""INSERT INTO '""" + number + """' VALUES (?,?,?,?)""", (id_add, date, time, point,))
+            return True
 
     def get_information_in_user_table(self, number, id):
         try:

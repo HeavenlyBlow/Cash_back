@@ -256,7 +256,7 @@ def handle_message(message):
             if io_manager.error_request == False:
                 bot.send_message(chat_id,
                                  "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
-                                 io_manager.number + "\n\nБаланс:  " +
+                                 io_manager.number + "\nБаланс:  " +
                                  str(io_manager.point), reply_markup=m.markup_change_points)
             else:
                 bot.send_message(chat_id, "Номер " + number + " не зарегистрирован", reply_markup=m.markup_in_number)
@@ -282,6 +282,7 @@ def new_percent(message):
 
                 if io_manager.update_percent(int(message.text)) is True:
                     bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + ad.proc)
+                    handler_start(message)
 
             else:
                 bot.send_message(chat_id, "Процент не должен быть выше 10")
@@ -431,7 +432,7 @@ def callback_key(call):
             try:
                 msg1 = bot.edit_message_text("Введите процент не превышающий 10", call.message.chat.id,
                                              call.message.message_id)
-                print(msg1.text)
+
                 bot.register_next_step_handler(msg1, new_percent)
             except:
                 print("Ошибка change_proc")
@@ -458,7 +459,7 @@ def callback_key(call):
 
         if call.data == "add_points":
             try:
-                msg1 = bot.edit_message_text("Введите сумму покупки", chat_id, message_id)
+                msg1 = bot.edit_message_text("Введите сумму покупки", chat_id, message_id, reply_markup=m.markup_back_to_info)
                 bot.register_next_step_handler(msg1, add_points_two)
             except:
                 print("Ошибка в add_points")
@@ -466,12 +467,19 @@ def callback_key(call):
         if call.data == "sub_points":
             try:
                 msg1 = bot.edit_message_text(
-                    "Введите количество списываемых баллов не превышающих:  " + str(io_manager.point)
-                    , chat_id, message_id)
+                    "Введите количество списываемых баллов не превышающих:  " + str(io_manager.point),
+                    chat_id, message_id, reply_markup=m.markup_back_to_info)
                 bot.register_next_step_handler(msg1, sub_points)
                 # bot.edit_message_text("Баланс теперь: " + str(db.amount), chat_id, message_id, reply_markup=m.markup_start)
             except:
                 print("Ошибка в sub_points")
+
+        if call.data == "back_to_info":
+            bot.send_message(chat_id,
+                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
+                             io_manager.number + "\nБаланс:  " +
+                             str(io_manager.point), reply_markup=m.markup_change_points)
+
     else:
         bot.send_message(call.message.chat.id, "У вас нет прав заходить сюда")
 

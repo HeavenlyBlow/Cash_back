@@ -50,3 +50,8 @@ markup_repeat_set_delete_admin.add(repeat_delete_button)
 markup_repeat_new_admin = types.InlineKeyboardMarkup()
 repeat_new_admin = types.InlineKeyboardButton(text="Ввести заново", callback_data="add_admin")
 markup_repeat_new_admin.add(repeat_new_admin)
+
+markup_back_to_info = types.InlineKeyboardMarkup()
+btn_back_to_info = types.InlineKeyboardButton(text="Назад", callback_data="back_to_info")
+markup_back_to_info.add(btn_back_to_info)
+

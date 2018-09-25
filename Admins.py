@@ -24,7 +24,7 @@ class administrators:
 
 
     def reload_admin_list(self):
-
+        print("Обновление списка администраторов")
         self.io_manager.get_admins_request()
         self.admins.clear()
         temp = self.io_manager.id_admin
