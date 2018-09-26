@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import Config
+import config
 import telebot
 import Markups as m
 import datetime
@@ -15,7 +15,7 @@ from DataBaseManager import SQL
 # from InformationOutputManager import information_request, return_name, return_point, return_error, insert_information_registration
 from MathProcent import points_value
 
-bot = telebot.TeleBot(Config.token)
+bot = telebot.TeleBot(config.token)
 buffer = Buffer()
 ad = administrators()
 set_admins_objects(ad)
@@ -75,6 +75,7 @@ def registrations_main(message):
         if regs == False:
             clear_registration()
         regs = True
+
         try:
             if (name != ""):
                 if (number != ""):
@@ -86,11 +87,11 @@ def registrations_main(message):
 
                     add_id = 1
                     if io_manager.set_information_for_registration(str_number, name, points, add_id) is True:
-
-                        # Создание пользовательской таблицы и забивание времени
-                        io_manager.create_user_table(str_number)
+                        print("+")
+                        # # Создание пользовательской таблицы и забивание времени
+                        # io_manager.create_user_table(str_number)
                         # Записываем дату, время, баллы в таблицу индификатор которой время
-                        io_manager.set_information_in_user_table(add_id, str_number, str(
+                        io_manager.set_information_in_history(add_id, str_number, str(
                             datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
                             datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')), points)
 
@@ -192,6 +193,7 @@ def add_points_two(message):
 
         points = points_value(int(message.text), io_manager.percent)
         db_point = points + io_manager.point
+        io_manager.point = db_point
 
         # получение обработанного номера без 1 символов
         str_number = io_manager.number
@@ -218,7 +220,7 @@ def sub_points(message):
         return
     if io_manager.is_int(message.text) is True:
         input_point = str(io_manager.how_much_to_sub_point(message.text))
-
+        # +1 делается от избавления бага при нажатии кнопки назад полсе добавления : Не обновлялась инфа о истории
         if io_manager.error_request is False:
 
             str_number = io_manager.number
@@ -227,6 +229,7 @@ def sub_points(message):
                 datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
                                     input_point)
 
+            io_manager.point = int(input_point)
             bot.send_message(chat_id, "Списано " + message.text + " бонусов. \nБаланс:  " + input_point)
         else:
             bot.send_message(chat_id, "Сумма списания не должна превышать: " + str(io_manager.point))
@@ -319,7 +322,7 @@ def history(message):
         operations = int(message.text)
 
         if (operations != 0):
-            answer = io_manager.get_information_from_user_table(io_manager.number, operations)
+            answer = io_manager.get_information_from_history(io_manager.number, operations)
             bot.send_message(chat_id, answer)
 
         else:
@@ -402,6 +405,7 @@ def callback_key(call):
         chat_id = call.message.chat.id
         message_id = call.message.message_id
         io_manager = buffer.get_buffer(chat_id)
+
 
         if io_manager == None:
             bot.send_message(chat_id, "Бот не запущен")

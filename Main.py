@@ -2,15 +2,22 @@
 
 
 
-import Config
+import config
 import ObjectManager
 from DataBaseManager import SQL
+
+
+
 
 
 obj = ObjectManager.Buffer()
 
 
-Sql = SQL(Config.database_neme)
+Sql = SQL(config.database_neme)
+
+
+str = Sql.get_information_in_history('9991891002', 3)
+print(str)
 
 obj.set_buffer(1, Sql)
 

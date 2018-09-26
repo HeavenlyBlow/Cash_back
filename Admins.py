@@ -19,8 +19,6 @@ class administrators:
                    'Андрей': 447165655,
                    'Кастрюля': 467989150}
 
-    def __init__(self):
-        pass
 
 
     def reload_admin_list(self):

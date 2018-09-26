@@ -1,4 +1,4 @@
-from Config import database_neme
+from config import database_neme
 from DataBaseManager import SQL
 
 
@@ -17,13 +17,11 @@ class input_output_manager:
     id_admin = []
     name_admin = []
 
-    # def __init__(self):
-    #     pass
 
     def get_admins_request(self):
         db_worker = SQL(database_neme)
         str = db_worker.get_admins()
-        db_worker.close()
+        db_worker.__del__()
         # Деление строки по переменным
         if (str != 'Не найдено'):
             print("найдено")
@@ -53,7 +51,7 @@ class input_output_manager:
         # Установка соединения
         db_worker = SQL(database_neme)
         str = db_worker.get_information(number)
-        db_worker.close()
+        db_worker.__del__()
 
         # Деление строки по переменным
         if (str != 'Не найдено'):
@@ -80,12 +78,15 @@ class input_output_manager:
             self.error_request = True
             print("не найдено")
 
-    def get_information_from_user_table(self, number, operations):
+    def get_information_from_history(self, number, operations):
 
         db_worker = SQL(database_neme)
         self.error_request = False
         add_id = self.add_id
+
+
         id = add_id - operations
+
 
         k = 0
         answer = "Информация по " + str(operations) + " последним операциям: \n\n Дата           |Время     |Баллы\n\n"
@@ -93,7 +94,7 @@ class input_output_manager:
         if (id <= add_id):
 
             while id < add_id:
-                prom_1 = db_worker.get_information_in_user_table(number, add_id)
+                prom_1 = db_worker.get_information_in_history(number, add_id)
                 if prom_1 != "Ошибка":
                     add_id -= 1
                     k = 0
@@ -119,49 +120,49 @@ class input_output_manager:
     def delete_information_from_list_admins(self, admin_id):
         db_worker = SQL(database_neme)
         if db_worker.delete_information_from_list_admins(admin_id):
-            db_worker.close()
+            db_worker.__del__()
             return True
         else:
-            db_worker.close()
+            db_worker.__del__()
             return False
 
     def set_information_in_list_admins(self, user_id, admin_name):
         db_worker = SQL(database_neme)
         if db_worker.set_information_in_list_admins(user_id, admin_name):
-            db_worker.close()
+            db_worker.__del__()
             return True
         else:
-            db_worker.close()
+            db_worker.__del__()
             return False
 
-    def set_information_in_user_table(self, id_add, number, date, time, point):
+    def set_information_in_history(self, id_add, number, date, time, point):
         db_worker = SQL(database_neme)
-        if db_worker.set_information_in_user_table(number, date, time, point, id_add):
-            db_worker.close()
+        if db_worker.set_information_in_history(number, date, time, point, id_add):
+            db_worker.__del__()
             return True
         else:
-            db_worker.close()
+            db_worker.__del__()
             return False
 
     def set_information_for_registration(self, number, name, points, add_id):
         db_worker = SQL(database_neme)
 
         if db_worker.registration(number, name, points, add_id) is True:
-            db_worker.close()
+            db_worker.__del__()
             return True
         else:
-            db_worker.close()
+            db_worker.__del__()
             return False
 
-    def create_user_table(self, number):
-        try:
-            db_worker = SQL(database_neme)
-            db_worker.create_user_table(number)
-            db_worker.close()
-
-        except:
-            print("Ошибка в create_point_bank")
-            db_worker.close()
+    # def create_user_table(self, number):
+    #     try:
+    #         db_worker = SQL(database_neme)
+    #         db_worker.create_user_table(number)
+    #         db_worker.__del__()
+    #
+    #     except:
+    #         print("Ошибка в create_point_bank")
+    #         db_worker.__del__()
 
     def is_int(self, value):
         try:
@@ -181,14 +182,14 @@ class input_output_manager:
     def update_point(self, number, date, time, point):
         db_worker = SQL(database_neme)
 
-        add_id = int(self.add_id) + 1
+        self.add_id += 1
 
-        if db_worker.update_point(number, point, str(add_id)) is True:
-            if db_worker.set_information_in_user_table(number, date, time, point, add_id) is True:
-                db_worker.close()
+        if db_worker.update_point(number, point, str(self.add_id)) is True:
+            if db_worker.set_information_in_history(number, date, time, point, self.add_id) is True:
+                db_worker.__del__()
                 return True
         else:
-            db_worker.close()
+            db_worker.__del__()
             return False
 
     def update_percent(self, per):
@@ -197,8 +198,10 @@ class input_output_manager:
 
         if db_worker.update_percent(per) is True:
             self.percent = int(per)
+            db_worker.__del__()
             return True
         else:
+            db_worker.__del__()
             return False
 
     def how_much_to_sub_point(self, input_point):
@@ -234,7 +237,7 @@ class input_output_manager:
                 self.percent = int(st)
 
             self.is_first = False
-
+            db_worker.__del__()
             return self.percent
 
         else:
