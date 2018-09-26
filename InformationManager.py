@@ -154,15 +154,6 @@ class input_output_manager:
             db_worker.__del__()
             return False
 
-    # def create_user_table(self, number):
-    #     try:
-    #         db_worker = SQL(database_neme)
-    #         db_worker.create_user_table(number)
-    #         db_worker.__del__()
-    #
-    #     except:
-    #         print("Ошибка в create_point_bank")
-    #         db_worker.__del__()
 
     def is_int(self, value):
         try:

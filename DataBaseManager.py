@@ -40,14 +40,6 @@ class SQL:
         except IndexError:
             return "Не найдено"
 
-    # def create_user_table(self, number):
-    #     try:
-    #         with self.connect:
-    #             self.cursor.execute(
-    #             """CREATE TABLE '""" + number + """' (id_add int UNIQUE, Date text,time text, point int)""")
-    #     except:
-    #         print("Ошибка в create_user_table")
-
     def delete_information_from_list_admins(self, admin_name):
         with self.connect:
             self.cursor.execute("DELETE FROM admins WHERE admin_name = ?", (admin_name,))
@@ -67,25 +59,15 @@ class SQL:
             self.connect.commit()
             return True
 
-    # def get_information_in_history(self, number):
-    #
-    #     with self.connect:
-    #         return self.cursor.execute("SELECT * FROM History WHERE number = ?", (number,)).fetchall()[0]
-
-
-    # def set_information_in_user_table(self, number, date, time, point, id_add):
-    #     with self.connect:
-    #         print(number, date, time, point, id_add)
-    #         self.cursor.execute("""INSERT INTO '""" + number + """' VALUES (?,?,?,?)""", (id_add, date, time, point,))
-
 
 
     def get_information_in_history(self, number, add_id):
-        # try:
+        try:
             with self.connect:
                 return self.cursor.execute("""SELECT * FROM History WHERE number = ? and id = ?""", (number, add_id,)).fetchall()[0]
-        # except:
-        #     return "Ошибка"
+        except:
+            print("Ошибка в get_information_in_history:\n Лог: " + str(number) + str(add_id))
+            return "Ошибка"
 
     def update_point(self, number, point, id_add):
         try:
