@@ -1,4 +1,4 @@
-from config import database_neme
+from Config import database_neme
 from DataBaseManager import SQL
 
 
@@ -154,6 +154,25 @@ class input_output_manager:
             db_worker.__del__()
             return False
 
+    def check_number(self, number):
+        db_worker = SQL(database_neme)
+        if db_worker.check_number(number) is True:
+            db_worker.__del__()
+            return True
+        else:
+            db_worker.__del__()
+            return False
+
+
+    # def create_user_table(self, number):
+    #     try:
+    #         db_worker = SQL(database_neme)
+    #         db_worker.create_user_table(number)
+    #         db_worker.__del__()
+    #
+    #     except:
+    #         print("Ошибка в create_point_bank")
+    #         db_worker.__del__()
 
     def is_int(self, value):
         try:
@@ -173,7 +192,7 @@ class input_output_manager:
     def update_point(self, number, date, time, point):
         db_worker = SQL(database_neme)
 
-        self.add_id += 1
+        #self.add_id += 1
 
         if db_worker.update_point(number, point, str(self.add_id)) is True:
             if db_worker.set_information_in_history(number, date, time, point, self.add_id) is True:
