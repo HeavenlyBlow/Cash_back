@@ -1,4 +1,4 @@
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 class Buffer:
     def __init__(self):
@@ -13,7 +13,7 @@ class Buffer:
         try:
             return self.buffer.get(chat_id)
         except:
-            print("Ошибка в get_buffer")
+            print("Error in get_buffer")
             return False
 
 
@@ -21,6 +21,6 @@ class Buffer:
         try:
             del self.buffer[chat_id]
         except:
-            print("Ошибка в del_buffer")
+            print("Error in del_buffer")
 
 

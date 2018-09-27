@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from InformationManager import input_output_manager as io
 
 
@@ -12,7 +14,6 @@ from InformationManager import input_output_manager as io
 
 # Переписан под класс чтобы не плодил io
 class administrators:
-    proc = 0
     io_manager = io()
     admins = {}
     main_admins = {'Алексей': 339425291,
@@ -22,7 +23,7 @@ class administrators:
 
 
     def reload_admin_list(self):
-        print("Обновление списка администраторов")
+        # print("Обновление списка администраторов")
         self.io_manager.get_admins_request()
         self.admins.clear()
         temp = self.io_manager.id_admin
@@ -30,26 +31,6 @@ class administrators:
         for i in temp:
             self.admins[self.io_manager.name_admin[k]] = int(self.io_manager.id_admin[k])
             k += 1
-
-
-
-
-
-
-# main_admins = {'Алексей' : 339425291,
-#                'Андрей' : 447165655,
-#                'Кастрюля' : 467989150}
-# admins = {}
-# #Обновить переменную admins
-# def reload_admin_list():
-#     io.get_admins_request()
-#     admins.clear()
-#     temp = io.return_id_admin()
-#     k = 0
-#     for i in temp:
-#         admins[io.return_name_admin()[k]] = int(io.return_id_admin()[k])
-#         k += 1
-#
 
 
 

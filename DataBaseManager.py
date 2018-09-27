@@ -1,4 +1,4 @@
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #     TODO Обвязать исключениями все методы
 import sqlite3
@@ -18,7 +18,7 @@ class SQL:
                 self.connect.commit()
                 return True
         except sqlite3.IntegrityError:
-            print("Ошибка в registrations:" + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
+            # print("Error in registrations:" + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
             return False
     def check_number(self,number):
         try:
@@ -26,13 +26,13 @@ class SQL:
                 # SELECT EXISTS(SELECT number FROM Users WHERE number = ?)
                 answer = self.cursor.execute("SELECT * FROM Users WHERE NUMBER = ?", (number,)).fetchall()
                 if answer.__len__() == 0:
-                    print("Номер не зарегистрирован")
+                    print("Number not registered")
                     return True
                 else:
-                    print("Номер зарегистрирован")
+                    print("Number registered")
                     return False
         except:
-            print("false")
+            print("Except in check_number")
             return False
 
     #     Закрытие соединения с базой данных
@@ -80,7 +80,7 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("""SELECT * FROM History WHERE number = ? and id = ?""", (number, add_id,)).fetchall()[0]
         except:
-            print("Ошибка в get_information_in_history:\n Лог: " + str(number) + str(add_id))
+            # print("Error in get_information_in_history:\n Log: " + str(number).encode('utf-8') + str(add_id))
             return "Ошибка"
 
     def update_point(self, number, point, id_add):
@@ -90,7 +90,7 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            print("Ошибка в update_point")
+            print("Error in update_point")
             return False
 
     #         TODO НЕ забыть создать файл логирования
@@ -100,7 +100,7 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Percent").fetchall()
         except:
-            print("Ошибка в get_percent(скорее всего не нафден файл с таблицей)")
+            print("Error in get_percent(the file with the table could not be found)")
 
     def update_percent(self, percent):
         try:
@@ -109,6 +109,6 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            print("Ошибка в update_percent")
+            print("Error in update_percent")
             return False
 

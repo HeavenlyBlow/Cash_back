@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import Vars
 
 
@@ -21,7 +22,7 @@ def check_user(id):
                 Vars.accept_user = get_key(ad.admins, i)
                 return True
     except:
-        print("Ошибка в функции проверки юзера")
+        print("Error in user verification function")
     return False
 
 # передает в функцию ссылку на администраторс

@@ -1,4 +1,6 @@
-from Config import database_neme
+# -*- coding: utf-8 -*-
+
+from config import database_neme
 from DataBaseManager import SQL
 
 
@@ -24,7 +26,7 @@ class input_output_manager:
         db_worker.__del__()
         # Деление строки по переменным
         if (str != 'Не найдено'):
-            print("найдено")
+            print("Found in get_admins_request")
             k = 0
             self.id_admin = []
             self.name_admin = []
@@ -43,7 +45,7 @@ class input_output_manager:
                 k = 0
         else:
             self.error_request = True
-            print("не найдено админа")
+            print("no found in get_admins_request")
 
     # Метод получения инфорации с бд по номеру
     def get_information_request(self, number):
@@ -55,7 +57,7 @@ class input_output_manager:
 
         # Деление строки по переменным
         if (str != 'Не найдено'):
-            print("найдено")
+            print("Found in get_information_request")
             k = 0
             self.error_request = False
             for i in str:
@@ -76,7 +78,7 @@ class input_output_manager:
 
         else:
             self.error_request = True
-            print("не найдено")
+            print("No found in get_information_request")
 
     def get_information_from_history(self, number, operations):
 
@@ -164,16 +166,6 @@ class input_output_manager:
             return False
 
 
-    # def create_user_table(self, number):
-    #     try:
-    #         db_worker = SQL(database_neme)
-    #         db_worker.create_user_table(number)
-    #         db_worker.__del__()
-    #
-    #     except:
-    #         print("Ошибка в create_point_bank")
-    #         db_worker.__del__()
-
     def is_int(self, value):
         try:
             int(value)
@@ -192,11 +184,12 @@ class input_output_manager:
     def update_point(self, number, date, time, point):
         db_worker = SQL(database_neme)
 
-        #self.add_id += 1
+        add_id = self.add_id + 1
 
-        if db_worker.update_point(number, point, str(self.add_id)) is True:
-            if db_worker.set_information_in_history(number, date, time, point, self.add_id) is True:
+        if db_worker.update_point(number, point, str(add_id)) is True:
+            if db_worker.set_information_in_history(number, date, time, point, add_id) is True:
                 db_worker.__del__()
+                self.add_id += 1
                 return True
         else:
             db_worker.__del__()

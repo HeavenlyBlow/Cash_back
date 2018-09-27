@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 import datetime
 def console(text, message):
     chat_id = message.chat.id
