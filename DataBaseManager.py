@@ -20,6 +20,20 @@ class SQL:
         except sqlite3.IntegrityError:
             print("Ошибка в registrations:" + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
             return False
+    def check_number(self,number):
+        try:
+            with self.connect:
+                # SELECT EXISTS(SELECT number FROM Users WHERE number = ?)
+                answer = self.cursor.execute("SELECT * FROM Users WHERE NUMBER = ?", (number,)).fetchall()
+                if answer.__len__() == 0:
+                    print("Номер не зарегистрирован")
+                    return True
+                else:
+                    print("Номер зарегистрирован")
+                    return False
+        except:
+            print("false")
+            return False
 
     #     Закрытие соединения с базой данных
     def __del__(self):

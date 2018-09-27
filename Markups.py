@@ -29,7 +29,6 @@ markup_start.add(button_start)
 
 markup_in_number = types.InlineKeyboardMarkup()
 button_in_number_reg = types.InlineKeyboardButton(text="Регистрация", callback_data="reg")
-button_in_number_back = types.InlineKeyboardButton(text="Главное меню", callback_data="start")
 markup_in_number.add(button_in_number_reg)
 
 markup_reg = types.InlineKeyboardMarkup(row_width=1)
@@ -54,4 +53,8 @@ markup_repeat_new_admin.add(repeat_new_admin)
 markup_back_to_info = types.InlineKeyboardMarkup()
 btn_back_to_info = types.InlineKeyboardButton(text="Назад", callback_data="back_to_info")
 markup_back_to_info.add(btn_back_to_info)
+
+markup_to_info = types.InlineKeyboardMarkup()
+btn_to_info = types.InlineKeyboardButton(text="К информации о номере", callback_data="to_info")
+markup_to_info.add(btn_to_info)
 

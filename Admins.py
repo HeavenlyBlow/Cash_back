@@ -12,7 +12,7 @@ from InformationManager import input_output_manager as io
 
 # Переписан под класс чтобы не плодил io
 class administrators:
-
+    proc = 0
     io_manager = io()
     admins = {}
     main_admins = {'Алексей': 339425291,
