@@ -19,7 +19,7 @@ bot = telebot.TeleBot(config.token)
 buffer = Buffer()
 ad = administrators()
 set_admins_objects(ad)
-
+print("start")
 
 money = 0
 regs = False
@@ -541,7 +541,9 @@ def callback_key(call):
                                           reply_markup=m.markup_back_to_info)
                 if (check_history == False):
                     bot.register_next_step_handler(msg13, history)
+
                 check_history = False
+                bot.delete_message(chat_id, message_id - 1)
             except:
                 print("Error in history")
 
@@ -553,6 +555,7 @@ def callback_key(call):
                 if (check_add_points == False):
                     bot.register_next_step_handler(msg2, add_points_two)
                 check_add_points = False
+                bot.delete_message(chat_id, message_id - 1)
             except:
                 print("Error in add_points")
 
@@ -565,6 +568,7 @@ def callback_key(call):
                 if (check_sub_points == False):
                     bot.register_next_step_handler(msg3, sub_points)
                 check_sub_points = False
+                bot.delete_message(chat_id, message_id - 1)
             except:
                 print("Error in sub_points")
 
