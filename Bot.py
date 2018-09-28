@@ -3,23 +3,22 @@ import config
 import telebot
 import Markups as m
 import datetime
-# import admins as ad
-import InformationManager
-from Console import console
+import sys
 from CheckUser import check_user, get_key, set_admins_objects
 import Vars
 from InformationManager import input_output_manager as io
 from ObjectManager import Buffer
 from Admins import administrators
-from DataBaseManager import SQL
-# from InformationOutputManager import information_request, return_name, return_point, return_error, insert_information_registration
 from MathProcent import points_value
+from Log import logs
+
+
 
 bot = telebot.TeleBot(config.token)
 buffer = Buffer()
 ad = administrators()
 set_admins_objects(ad)
-print("start")
+log = logs()
 
 money = 0
 regs = False
@@ -31,8 +30,7 @@ time = ''
 usage_number = ""
 input_number = ""
 
- # print("   Date    |   Time   |  user_id  |  Command")
-
+log.info_logs("Бот запущен")
 
 # При старте делает запрос в бд, при повтороном старте, использует локальный процент
 @bot.message_handler(commands=['start'])
@@ -42,7 +40,7 @@ def start_handler(message):
         buffer.set_buffer(message.chat.id, io_manager)
         ad.reload_admin_list()
         if check_user(message.chat.id):
-            # print("Authorization user - " + str(Vars.accept_user) + " was successful!")
+            log.info_logs("Пользователь - " + str(Vars.accept_user) + " авторизован")
             if Vars.admin_is_main == True:
                 bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup_main_admin)
             else:
@@ -54,8 +52,8 @@ def start_handler(message):
                              "У вас нет прав заходить сюда. \nСообщите администратору ваш ID = " + str(message.chat.id),
                              reply_markup=m.markup_delete)
     except:
+        log.info_logs("Ошибка в start_handler")
         bot.send_message(message.chat.id, "Ошибка авторизации")
-
 
 
 # Добавлено создание пользовательской таблицы и забивание времени
@@ -63,6 +61,7 @@ def registrations_main(message):
     global usage_number
     io_manager = buffer.get_buffer(message.chat.id)
     if check_user(message.chat.id):
+        log.info_logs(str(Vars.accept_user)+ " запустил регистрацию")
         global regs, name, points, number, input_number
         if message.text == "В главное меню":
             start_handler(message)
@@ -91,6 +90,7 @@ def registrations_main(message):
                     points = points_value(int(message.text), io_manager.percent)
                     # Отправляем данные в базу данных
 
+                    log.info_logs("Введенна сумма: " + str(message.text) + "Баллов: " + str(points))
                     str_number = io_manager.number_processing(number)
 
                     add_id = 1
@@ -107,12 +107,12 @@ def registrations_main(message):
                                          "Успешно!\n\nИмя: " + name + "\nНомер: " + str(number) +
                                          "\nБаллов: " + str(points) +
                                          "\n\nТекущий процент: " + str(io_manager.percent))
-
+                        log.info_logs("Запись прошла успешно")
                     regs = False
 
         except:
+            log.error_logs("Ошибка регистрации: " + str(name) + "|" + str(number) + "|" + str(points))
             bot.send_message(message.chat.id, "Ошибка регистрации")
-            # print("Logs: " + str(name).encode('UTF-8') + " " + str(number) + " " + str(points))
             regs = False
 
 
@@ -127,16 +127,20 @@ def registrations_main(message):
                         return
                     if (int(message.text) >= 79000000000) & (int(message.text) <= 89999999999):
                         in_number(message.text)
+                        log.info_logs("Введен номер: " + message.text)
                         next_steep = bot.send_message(message.chat.id, "Введите сумму")
                         bot.register_next_step_handler(next_steep, registrations_main)
                     else:
+                        log.info_logs("Номер не крорректен: " + message.text)
                         msg1 = bot.send_message(message.chat.id, "Номер введен некорректно. Повторите ввод номера")
                         bot.register_next_step_handler(msg1, registrations_main)
                         return
         except:
+            log.error_logs("Ошибка в вводе номера")
             pause = bot.send_message(message.chat.id, "Повторите ввод номера")
             bot.register_next_step_handler(pause, registrations_main)
-            print("Error in number setting")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
 
         try:
             if (number == ''):
@@ -144,8 +148,10 @@ def registrations_main(message):
                     in_name(message.text)
                     next_steep = bot.send_message(message.chat.id,
                                                   "Введите номер телефона \nв формате 7---------- или 8----------")
+                    log.info_logs("Введено имя: " + message.text)
                     bot.register_next_step_handler(next_steep, registrations_main)
         except:
+            log.error_logs("Ошибка ввода имени")
             pause = bot.send_message(message.chat.id, "Повторите ввод имени")
             bot.register_next_step_handler(pause, registrations_main)
     else:
@@ -163,8 +169,9 @@ def handler_start(message):
     if (check_user(message.chat.id) & (io_manager != None)):
         chat_id = message.chat.id
         # console("В главное меню", message)
-        bot.send_message(chat_id, '\U0001F44BПривет, ' + str(
-            Vars.accept_user) + '\U0001F44B\nТебя приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
+        bot.send_message(chat_id, '\U0001F44BПривет,' + str(
+            Vars.accept_user) + '\U0001F44B                                 \n'
+                                'Тебя приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
                          str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
 
     elif io_manager == None:
@@ -199,8 +206,8 @@ def manage_admins(message):
         else:
             bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
     except:
+        log.error_logs("Ошибка в определении администратора:" + str(message.chat.id))
         bot.send_message(message.chat.id, "Ошибка в определении администратора")
-
 
 # Определитель инта вынесен в инфор. менеджер
 def add_points_two(message):
@@ -213,38 +220,46 @@ def add_points_two(message):
     elif message.text == "Администрирование":
         manage_admins(message)
         return
-    if ((io_manager.is_int(message.text)) & (check_add_points == False)):
 
-        points = points_value(int(message.text), io_manager.percent)
-        db_point = points + io_manager.point
-        io_manager.point = db_point
+    try:
+        if ((io_manager.is_int(message.text)) & (check_add_points == False)):
+            points = points_value(int(message.text), io_manager.percent)
+            db_point = points + io_manager.point
+            io_manager.point = db_point
+            # получение обработанного номера без 1 символов
+            str_number = io_manager.number
 
-        # получение обработанного номера без 1 символов
-        str_number = io_manager.number
-
-        io_manager.update_point(str_number, str(
-            datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
-            datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
+            io_manager.update_point(str_number, str(
+                datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
+                datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
                                 str(db_point))
-        bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nБаланс: " + str(db_point),reply_markup=m.markup_to_info)
+            bot.send_message(chat_id, "Добавлено " + str(points) + " бонусов.\nБаланс: " + str(db_point),reply_markup=m.markup_to_info)
+            log.info_logs(str(Vars.accept_user) + " добавил(а) " + str_number + " баллов: " + str(db_point))
 
-        return
-    elif ((check_add_points == True) & ((check_history == False))):
-        check_add_points = False
-        check_history = False
-        history(message)
-    elif ((check_add_points == True) & ((check_sub_points == False))):
-        check_add_points = False
-        check_sub_points = False
-        sub_points(message)
-    elif (check_add_points == True):
-        check_sub_points = False
-        check_add_points = False
-        check_history = False
+            return
 
-    else:
-        bot.send_message(chat_id, "Количество добавляемых баллов должно быть числом")
-        bot.register_next_step_handler(message, add_points_two)
+        elif ((check_add_points == True) & ((check_history == False))):
+            check_add_points = False
+            check_history = False
+            history(message)
+
+        elif ((check_add_points == True) & ((check_sub_points == False))):
+            check_add_points = False
+            check_sub_points = False
+            sub_points(message)
+
+        elif (check_add_points == True):
+            check_sub_points = False
+            check_add_points = False
+            check_history = False
+
+        else:
+            bot.send_message(chat_id, "Количество добавляемых баллов должно быть числом")
+            bot.register_next_step_handler(message, add_points_two)
+
+    except:
+        bot.send_message(chat_id, "Ошибка в добавлении")
+        log.error_logs("Ошибка в добавлении: " + str(Vars.accept_user) + "|" + str(points))
 
 def sub_points(message):
     global check_history, check_sub_points,check_add_points
@@ -256,38 +271,45 @@ def sub_points(message):
     elif message.text == "Администрирование":
         manage_admins(message)
         return
-    if io_manager.is_int(message.text) is True:
-        input_point = str(io_manager.how_much_to_sub_point(message.text))
-        # +1 делается от избавления бага при нажатии кнопки назад полсе добавления : Не обновлялась инфа о истории
-        if ((io_manager.error_request is False) & (check_sub_points == False)):
-            str_number = io_manager.number
-            io_manager.update_point(str_number, str(
-                datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
-                datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),input_point)
-            io_manager.point = int(input_point)
-            bot.send_message(chat_id, "Списано " + message.text + " бонусов. \nБаланс:  " + input_point,
-                             reply_markup=m.markup_to_info)
-            return
-        elif ((check_sub_points == True) & ((check_add_points == False))):
-            check_sub_points = False
-            check_add_points = False
-            add_points_two(message)
-        elif ((check_sub_points == True) & ((check_history == False))):
-            check_sub_points = False
-            check_history = False
-            history(message)
-        elif (check_sub_points == True):
-            check_sub_points = False
-            check_add_points = False
-            check_history = False
+    try:
+
+        if io_manager.is_int(message.text) is True:
+            input_point = str(io_manager.how_much_to_sub_point(message.text))
+            # +1 делается от избавления бага при нажатии кнопки назад полсе добавления : Не обновлялась инфа о истории
+            if ((io_manager.error_request is False) & (check_sub_points == False)):
+                str_number = io_manager.number
+                io_manager.update_point(str_number, str(
+                    datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
+                    datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),input_point)
+                io_manager.point = int(input_point)
+                bot.send_message(chat_id, "Списано " + message.text + " бонусов. \nБаланс:  " + input_point,
+                                 reply_markup=m.markup_to_info)
+                log.info_logs(str(Vars.accept_user) + " списал(а) " + str_number +" "+ message.text + " баллов" )
+                return
+
+            elif ((check_sub_points == True) & ((check_add_points == False))):
+                check_sub_points = False
+                check_add_points = False
+                add_points_two(message)
+
+            elif ((check_sub_points == True) & ((check_history == False))):
+                check_sub_points = False
+                check_history = False
+                history(message)
+
+            elif (check_sub_points == True):
+                check_sub_points = False
+                check_add_points = False
+                check_history = False
+
+            else:
+                bot.send_message(chat_id, "Сумма списания не должна превышать: " + str(io_manager.point))
+                bot.register_next_step_handler(message, sub_points)
         else:
-            bot.send_message(chat_id, "Сумма списания не должна превышать: " + str(io_manager.point))
-            bot.register_next_step_handler(message, sub_points)
-
-    else:
-        bot.send_message(chat_id, "Количество списываемых баллов должно быть числом")
-        bot.register_next_step_handler(message, add_points_two)
-
+            bot.send_message(chat_id, "Количество списываемых баллов должно быть числом")
+            bot.register_next_step_handler(message, add_points_two)
+    except:
+        log.error_logs("Ошибка в sub_point")
 
 def handle_message(message):
     global usage_number, input_number
@@ -323,6 +345,7 @@ def handle_message(message):
                     msg = bot.send_message(chat_id,"Номер введен некорректно. Повторите ввод номера")
                     bot.register_next_step_handler(msg, handle_message)
         except:
+            log.error_logs("Ошибка в handler_message" + str(chat_id) + "|" + message.text)
             bot.send_message(chat_id, "Номер не введен")
             handler_start(message)
 
@@ -344,11 +367,11 @@ def new_percent(message):
         elif (io_manager.is_int(message.text) == True):
 
             if (int(message.text) >= 0) & (int(message.text) <= 10):
-                ad.proc = message.text
-
-                if io_manager.update_percent(int(message.text)) is True:
-                    bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + ad.proc)
-                    handler_start(message)
+                percent = message.text
+            if io_manager.update_percent(int(message.text)) is True:
+                bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + percent)
+                handler_start(message)
+                log.info_logs(str(Vars.accept_user) + "изменил процент на " + percent)
 
             else:
                 bot.send_message(chat_id, "Процент не должен быть выше 10")
@@ -384,7 +407,7 @@ def history(message):
 
     if (io_manager.is_int(message.text) is True):
         operations = int(message.text)
-
+        log.info_logs(str(Vars.accept_user) + " запросил историю")
         if ((operations != 0) & (check_history == False)):
             answer = io_manager.get_information_from_history(io_manager.number, operations)
             bot.send_message(chat_id, answer, reply_markup=m.markup_to_info)
@@ -422,6 +445,8 @@ def add_admin_name(message):
         manage_admins(message)
         return
     try:
+        log.info_logs(str(Vars.accept_user) + " добавляет админа")
+
         ad.reload_admin_list()
         admin_name = message.text
         if admin_name not in ad.admins.keys():
@@ -430,8 +455,8 @@ def add_admin_name(message):
         else:
             bot.send_message(message.chat.id, "Такое имя уже занято", reply_markup=m.markup_repeat_new_admin)
     except:
+        log.info_logs("Ошибка в add_admin_name: " + str(Vars.accept_user) + " ввел " + admin_name)
         bot.send_message(message.chat.id, "Ошибка добавления")
-
 
 # Ввод ид нового админа
 def add_admin_id(message):
@@ -450,8 +475,10 @@ def add_admin_id(message):
         bot.send_message(message.chat.id, "Администратор " + admin_name + " добавлен!")
         manage_admins(message)
     except ValueError:
-        bot.send_message(message.chat.id, "ID должно быть цифровым", reply_markup=m.markup_repeat_new_admin)
-
+        log.error_logs(str(Vars.accept_user) + " не правильно ввел процент")
+        bot.send_message(message.chat.id, "ID должно быть числом", reply_markup=m.markup_repeat_new_admin)
+        e = sys.exc_info()[1]
+        logs.error_logs(str(e))
 
 # Удаление админа
 def delete_admin_name(message):
@@ -466,8 +493,8 @@ def delete_admin_name(message):
     ad.reload_admin_list()
     if message.text in ad.admins.keys():
         io_manager.delete_information_from_list_admins(message.text)
-        # print("Remove an administrator" + message.text)
         bot.send_message(message.chat.id, "Администратор " + message.text + " удален!")
+        log.info_logs("Админ " + str(Vars.accept_user) + " удалил " + message.text)
         manage_admins(message)
     else:
         bot.send_message(message.chat.id, "Администратора с таким именем нет.\n" + print_admins,
@@ -510,7 +537,7 @@ def callback_key(call):
 
                 bot.register_next_step_handler(msg19, new_percent)
             except:
-                print("Error in change_proc")
+                log.error_logs("Ошибка кнопки сhange_proc")
                 return
 
         if call.data == "input_number":
@@ -521,7 +548,7 @@ def callback_key(call):
                 bot.register_next_step_handler(mess, handle_message)
 
             except:
-                print("Error in input_number")
+                log.error_logs("Ошибка кнопки input_number")
                 return
 
         if call.data == "reg":
@@ -530,7 +557,7 @@ def callback_key(call):
                 bot.register_next_step_handler(mag1, registrations_main)
 
             except:
-                print("Error in рег")
+                log.error_logs("Ошибка кнопки reg")
                 return
 
         # Обработка кнопки показа последних 10 действий
@@ -545,7 +572,7 @@ def callback_key(call):
                 check_history = False
                 bot.delete_message(chat_id, message_id - 1)
             except:
-                print("Error in history")
+                log.error_logs("Ошибка кнопки history")
 
         if call.data == "add_points":
             try:
@@ -557,7 +584,7 @@ def callback_key(call):
                 check_add_points = False
                 bot.delete_message(chat_id, message_id - 1)
             except:
-                print("Error in add_points")
+                log.error_logs("Ошибка кнопке add_point")
 
         if call.data == "sub_points":
             try:
@@ -570,7 +597,8 @@ def callback_key(call):
                 check_sub_points = False
                 bot.delete_message(chat_id, message_id - 1)
             except:
-                print("Error in sub_points")
+                log.error_logs("Ошибка кнопки sub_points")
+
 
         if call.data == "back_to_info":
             bot.send_message(chat_id,
@@ -624,4 +652,4 @@ try:
         # bot.polling(none_stop=True)
 
 except:
-    print("!!Cycle error!!!")
+    log.error_logs("Ошибка цикла!")

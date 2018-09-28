@@ -2,7 +2,10 @@
 
 #     TODO Обвязать исключениями все методы
 import sqlite3
+from Log import logs
+import sys
 
+logs = logs()
 
 class SQL:
     # Инициализация класса бд, установка соединение и запуск курсора
@@ -17,8 +20,10 @@ class SQL:
                 self.cursor.execute("INSERT INTO Users VALUES (?,?,?,?)", (number, name, points, add_id,))
                 self.connect.commit()
                 return True
-        except sqlite3.IntegrityError:
-            # print("Error in registrations:" + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
+        except :
+            e = sys.exc_info()[1]
+            logs.error_logs("Ошибка регистарции: " + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
+            logs.error_logs(str(e))
             return False
     def check_number(self,number):
         try:
@@ -26,13 +31,13 @@ class SQL:
                 # SELECT EXISTS(SELECT number FROM Users WHERE number = ?)
                 answer = self.cursor.execute("SELECT * FROM Users WHERE NUMBER = ?", (number,)).fetchall()
                 if answer.__len__() == 0:
-                    print("Number not registered")
                     return True
                 else:
-                    print("Number registered")
                     return False
         except:
-            print("Except in check_number")
+            logs.error_logs("Ошибка в check_number")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
             return False
 
     #     Закрытие соединения с базой данных
@@ -44,6 +49,9 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Admins").fetchall()
         except IndexError:
+            logs.error_logs("Ошибка в get_admins")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
             return "Не найдено"
 
     # Метод получения инфорации по номера возращает строки из бд, или не найдено
@@ -52,27 +60,45 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Users WHERE number = ?", (number,)).fetchall()[0]
         except IndexError:
+            logs.error_logs("Ошибка в get_information")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
             return "Не найдено"
 
     def delete_information_from_list_admins(self, admin_name):
-        with self.connect:
-            self.cursor.execute("DELETE FROM admins WHERE admin_name = ?", (admin_name,))
-            self.connect.commit()
-            return True
+        try:
+            with self.connect:
+                self.cursor.execute("DELETE FROM admins WHERE admin_name = ?", (admin_name,))
+                self.connect.commit()
+                return True
+
+        except:
+            logs.error_logs("Ошибка в del_inforamtion_from_list_admins")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
 
     def set_information_in_list_admins(self, user_id, admin_name):
-        with self.connect:
-            self.cursor.execute("INSERT INTO admins VALUES (?,?)", (str(user_id), admin_name,))
-            self.connect.commit()
-            return True
+        try:
+            with self.connect:
+                self.cursor.execute("INSERT INTO admins VALUES (?,?)", (str(user_id), admin_name,))
+                self.connect.commit()
+                return True
+        except:
+            logs.error_logs("Ошибка в set_information_in_list_admins")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
 
     def set_information_in_history(self, number, date, time, point, id_add):
 
-        with self.connect:
-            self.cursor.execute("""INSERT INTO History VALUES (?,?,?,?,?)""", (number, date, time, point, id_add,))
-            self.connect.commit()
-            return True
-
+        try:
+            with self.connect:
+                self.cursor.execute("""INSERT INTO History VALUES (?,?,?,?,?)""", (number, date, time, point, id_add,))
+                self.connect.commit()
+                return True
+        except:
+            logs.error_logs("Ошибка в set_inforamteion_in_history")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
 
 
     def get_information_in_history(self, number, add_id):
@@ -80,7 +106,9 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("""SELECT * FROM History WHERE number = ? and id = ?""", (number, add_id,)).fetchall()[0]
         except:
-            # print("Error in get_information_in_history:\n Log: " + str(number).encode('utf-8') + str(add_id))
+            logs.error_logs("Ошибка в get_inforamtion_in_history")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
             return "Ошибка"
 
     def update_point(self, number, point, id_add):
@@ -90,7 +118,9 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            print("Error in update_point")
+            logs.error_logs("Ошибка в update_point")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
             return False
 
     #         TODO НЕ забыть создать файл логирования
@@ -100,7 +130,9 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Percent").fetchall()
         except:
-            print("Error in get_percent(the file with the table could not be found)")
+            logs.error_logs("Ошибка в  get_percent")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
 
     def update_percent(self, percent):
         try:
@@ -109,6 +141,8 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            print("Error in update_percent")
+            logs.error_logs("Ошибка в update_percent")
+            e = sys.exc_info()[1]
+            logs.error_logs(str(e))
             return False
 

@@ -26,7 +26,7 @@ class input_output_manager:
         db_worker.__del__()
         # Деление строки по переменным
         if (str != 'Не найдено'):
-            print("Found in get_admins_request")
+            # print("Found in get_admins_request")
             k = 0
             self.id_admin = []
             self.name_admin = []
@@ -45,7 +45,7 @@ class input_output_manager:
                 k = 0
         else:
             self.error_request = True
-            print("no found in get_admins_request")
+            # print("no found in get_admins_request")
 
     # Метод получения инфорации с бд по номеру
     def get_information_request(self, number):
@@ -57,7 +57,7 @@ class input_output_manager:
 
         # Деление строки по переменным
         if (str != 'Не найдено'):
-            print("Found in get_information_request")
+            # print("Found in get_information_request")
             k = 0
             self.error_request = False
             for i in str:
@@ -78,7 +78,7 @@ class input_output_manager:
 
         else:
             self.error_request = True
-            print("No found in get_information_request")
+            # print("No found in get_information_request")
 
     def get_information_from_history(self, number, operations):
 
