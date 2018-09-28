@@ -608,12 +608,14 @@ def callback_key(call):
             check_history = True
             check_add_points = True
             check_sub_points = True
+            bot.delete_message(chat_id,message_id)
 
         if call.data == "to_info":
             bot.send_message(chat_id,
                              "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
                              io_manager.number + "\nБаланс:  " +
                              str(io_manager.point), reply_markup=m.markup_change_points)
+            bot.delete_message(chat_id,message_id)
 
     else:
         bot.send_message(call.message.chat.id, "У вас нет прав заходить сюда")
