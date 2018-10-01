@@ -578,7 +578,6 @@ def callback_key(call):
             try:
                 msg2 = bot.edit_message_text("Введите сумму покупки", chat_id, message_id,
                                              reply_markup=m.markup_back_to_info)
-                print("Add = " + str(check_add_points) + "\nSub = " + str(check_sub_points))
                 if (check_add_points == False):
                     bot.register_next_step_handler(msg2, add_points_two)
                 check_add_points = False
@@ -591,7 +590,6 @@ def callback_key(call):
                 msg3 = bot.edit_message_text(
                     "Введите количество списываемых баллов не превышающих:  " + str(io_manager.point),
                     chat_id, message_id, reply_markup=m.markup_back_to_info)
-                print("Add = " + str(check_add_points) + "\nSub = " + str(check_sub_points))
                 if (check_sub_points == False):
                     bot.register_next_step_handler(msg3, sub_points)
                 check_sub_points = False
