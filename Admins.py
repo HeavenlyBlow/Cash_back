@@ -16,7 +16,8 @@ class administrators:
                    'Кастрюля': 467989150}
     admin_name = {}
 
-
+    main_admin_name = {339425291: 'Алексей',
+                       447165655: 'Андрей'}
 
 
     def reload_admin_list(self):
@@ -36,7 +37,10 @@ class administrators:
 
     def get_admin_name(self, chat_id):
         try:
-            return self.admin_name.get(chat_id)
+            if self.admin_name.get(chat_id) != None:
+                return self.admin_name.get(chat_id)
+            elif self.main_admin_name.get(chat_id) != None:
+                return self.main_admin_name.get(chat_id)
         except:
             logs.error_logs("Ошибка в get_admin_name")
             return
