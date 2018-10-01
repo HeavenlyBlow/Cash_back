@@ -52,8 +52,7 @@ class administrators:
             for p in self.main_admins.values():
                 if p == chat_id:
                     return True
-                else:
-                    return False
+            return False
         except:
             logs.error_logs("Error in check_main_admins")
             return False
