@@ -194,10 +194,11 @@ def registrations_main(message):
 # Обработка кнопки "В главное меню"
 @bot.message_handler(func=lambda message: message.text == "В главное меню")
 def handler_start(message):
-    global check_history, check_sub_points, check_add_points
+    global check_history, check_sub_points, check_add_points, regs
     check_add_points = False
     check_sub_points = False
     check_history = False
+    regs = False
     io_manager = buffer.get_buffer(message.chat.id)
     if ((check_user(message.chat.id)) & (io_manager != None)):
         chat_id = message.chat.id
