@@ -37,10 +37,12 @@ class administrators:
 
     def get_admin_name(self, chat_id):
         try:
-            if self.admin_name.get(chat_id) != None:
-                return self.admin_name.get(chat_id)
-            elif self.main_admin_name.get(chat_id) != None:
+            if self.main_admin_name.get(chat_id) != None:
                 return self.main_admin_name.get(chat_id)
+
+            elif self.admin_name.get(chat_id) != None:
+                return self.admin_name.get(chat_id)
+
         except:
             logs.error_logs("Ошибка в get_admin_name")
             return
