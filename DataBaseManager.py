@@ -22,7 +22,7 @@ class SQL:
                 return True
         except :
             e = sys.exc_info()[1]
-            logs.error_logs("Ошибка регистарции: " + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
+            logs.error_logs("Error of registration: " + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
             logs.error_logs(str(e))
             return False
     def check_number(self,number):
@@ -35,7 +35,7 @@ class SQL:
                 else:
                     return False
         except:
-            logs.error_logs("Ошибка в check_number")
+            logs.error_logs("Error in check_number")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
             return False
@@ -49,7 +49,7 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Admins").fetchall()
         except IndexError:
-            logs.error_logs("Ошибка в get_admins")
+            logs.error_logs("Error in get_admins")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
             return "Не найдено"
@@ -60,7 +60,7 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Users WHERE number = ?", (number,)).fetchall()[0]
         except IndexError:
-            logs.error_logs("Ошибка в get_information")
+            logs.error_logs("Error in get_information")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
             return "Не найдено"
@@ -73,7 +73,7 @@ class SQL:
                 return True
 
         except:
-            logs.error_logs("Ошибка в del_inforamtion_from_list_admins")
+            logs.error_logs("Error in del_inforamtion_from_list_admins")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
 
@@ -84,7 +84,7 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            logs.error_logs("Ошибка в set_information_in_list_admins")
+            logs.error_logs("Error in set_information_in_list_admins")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
 
@@ -96,7 +96,7 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            logs.error_logs("Ошибка в set_inforamteion_in_history")
+            logs.error_logs("Error in set_inforamteion_in_history")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
 
@@ -106,7 +106,7 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("""SELECT * FROM History WHERE number = ? and id = ?""", (number, add_id,)).fetchall()[0]
         except:
-            logs.error_logs("Ошибка в get_inforamtion_in_history")
+            logs.error_logs("Error in get_inforamtion_in_history")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
             return "Ошибка"
@@ -118,7 +118,7 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            logs.error_logs("Ошибка в update_point")
+            logs.error_logs("Error in update_point")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
             return False
@@ -130,7 +130,7 @@ class SQL:
             with self.connect:
                 return self.cursor.execute("SELECT * FROM Percent").fetchall()
         except:
-            logs.error_logs("Ошибка в  get_percent")
+            logs.error_logs("Error in  get_percent")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
 
@@ -141,7 +141,7 @@ class SQL:
                 self.connect.commit()
                 return True
         except:
-            logs.error_logs("Ошибка в update_percent")
+            logs.error_logs("Error in update_percent")
             e = sys.exc_info()[1]
             logs.error_logs(str(e))
             return False

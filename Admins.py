@@ -44,7 +44,7 @@ class administrators:
                 return self.admin_name.get(chat_id)
 
         except:
-            logs.error_logs("Ошибка в get_admin_name")
+            logs.error_logs("Error in get_admin_name")
             return
 
     def check_main_admins(self, chat_id):
@@ -55,7 +55,7 @@ class administrators:
                 else:
                     return False
         except:
-            logs.error_logs("Ошибка в check_main_admins")
+            logs.error_logs("Error in check_main_admins")
             return False
 
 
