@@ -4,8 +4,7 @@ import telebot
 import Markups as m
 import datetime
 import sys
-from CheckUser import check_user, get_key, set_admins_objects
-import Vars
+from CheckUser import check_user, set_admins_objects
 from InformationManager import input_output_manager as io
 from ObjectManager import Buffer
 from Admins import administrators
@@ -35,25 +34,26 @@ input_number = ""
 #Обработка сообщения /start
 @bot.message_handler(commands=['start'])
 def start_handler(message):
-    try:
-        io_manager = io()
-        buffer.set_buffer(message.chat.id, io_manager)
-        ad.reload_admin_list()
-        if check_user(message.chat.id):
-            log.info_logs("Пользователь - " + str(Vars.accept_user) + " авторизован")
-            if Vars.admin_is_main == True:
-                bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup_main_admin)
-            else:
-                bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup)
-            handler_start(message)
+    # try:
+    #
+    # except:
+    #     log.info_logs("Ошибка в start_handler")
+    #     bot.send_message(message.chat.id, "Ошибка авторизации")
+    io_manager = io()
+    buffer.set_buffer(message.chat.id, io_manager)
+    ad.reload_admin_list()
+    if check_user(message.chat.id):
+        log.info_logs("Пользователь - " + ad.get_admin_name(message.chat.id) + " авторизован")
+        if ad.check_main_admins(message.chat.id) == True:
+            bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup_main_admin)
         else:
-            buffer.del_buffer(message.chat.id)
-            bot.send_message(message.chat.id,
-                             "У вас нет прав заходить сюда. \nСообщите администратору ваш ID = " + str(message.chat.id),
-                             reply_markup=m.markup_delete)
-    except:
-        log.info_logs("Ошибка в start_handler")
-        bot.send_message(message.chat.id, "Ошибка авторизации")
+            bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup)
+        handler_start(message)
+    else:
+        buffer.del_buffer(message.chat.id)
+        bot.send_message(message.chat.id,
+                         "У вас нет прав заходить сюда. \nСообщите администратору ваш ID = " + str(message.chat.id),
+                         reply_markup=m.markup_delete)
 
 
 # Добавлено создание пользовательской таблицы и забивание времени
@@ -63,7 +63,7 @@ def registrations_main(message):
     io_manager = buffer.get_buffer(message.chat.id)
     if check_user(message.chat.id):
         if regs == False:
-            log.info_logs(str(Vars.accept_user) + " запустил регистрацию")
+            log.info_logs(str(ad.get_admin_name) + " запустил регистрацию")
         if message.text == "В главное меню":
             start_handler(message)
             regs = False
@@ -168,8 +168,7 @@ def handler_start(message):
     if ((check_user(message.chat.id)) & (io_manager != None)):
         chat_id = message.chat.id
         # console("В главное меню", message)
-        bot.send_message(chat_id, '\U0001F44BПривет,' + str(
-            Vars.accept_user) + '\U0001F44B                                 \n'
+        bot.send_message(chat_id, '\U0001F44BПривет, ' + str(ad.get_admin_name(message.chat.id)) + '\U0001F44B                                 \n'
                                 'Тебя приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
                          str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
 
@@ -195,7 +194,7 @@ def manage_admins(message):
             print_admins += str(i) + "  |  " + str(ad.admins.get(i)) + "\n"
     try:
         # Главный админ
-        if (check_user(message.chat.id) & (Vars.admin_is_main) & (io_manager != None)):
+        if (check_user(message.chat.id) & (ad.check_main_admins(message.chat.id)) & (io_manager != None)):
             bot.send_message(message.chat.id, text=print_admins, reply_markup=m.markup_manage_admins)
 
         elif io_manager == None:
@@ -236,7 +235,7 @@ def add_points_two(message):
                                     str(db_point))
             bot.send_message(chat_id, io_manager.number +"\n\nТекущий процент: " + str(io_manager.get_percent()) + "\nДобавлено " + str(points) + " бонусов.\nБаланс: " + str(db_point),
                              reply_markup=m.markup_to_info)
-            log.info_logs(str(Vars.accept_user) + " добавил(а) " + str_number + " баллов: " + str(points))
+            log.info_logs(str(ad.get_admin_name(message.chat.id)) + " добавил(а) " + str_number + " баллов: " + str(points))
 
             return
         #Проверка на то, нажал ли пользователь кнопку "Назад", чтобы не выводить сообщения по два раза
@@ -259,7 +258,7 @@ def add_points_two(message):
 
     except:
         bot.send_message(chat_id, "Ошибка в добавлении")
-        log.error_logs("Ошибка в добавлении: " + str(Vars.accept_user) + "|" + str(points))
+        log.error_logs("Ошибка в добавлении: " + str(ad.get_admin_name(message.chat.id)))
 
 #Удаление баллов
 def sub_points(message):
@@ -284,7 +283,7 @@ def sub_points(message):
                 io_manager.point = int(input_point)
                 bot.send_message(chat_id, io_manager.number + "\n\nСписано " + message.text + " бонусов. \nБаланс:  " + input_point,
                                  reply_markup=m.markup_to_info)
-                log.info_logs(str(Vars.accept_user) + " списал(а) " + str_number + " " + message.text + " баллов")
+                log.info_logs(str(ad.get_admin_name(message.chat.id)) + " списал(а) " + str_number + " " + message.text + " баллов")
                 return
 
             # Проверка на то, нажал ли пользователь кнопку "Назад", чтобы не выводить сообщения по два раза
@@ -332,7 +331,7 @@ def handle_message(message):
             str_number = io_manager.number_processing(number)
             io_manager.get_information_request(str_number)
             if io_manager.error_request == False:
-                log.info_logs(str(Vars.accept_user) + " запросил информацию о номере: " + io_manager.number)
+                log.info_logs(str(ad.get_admin_name(message.chat.id)) + " запросил информацию о номере: " + io_manager.number)
                 bot.send_message(chat_id,
                                  "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
                                  io_manager.number + "\nБаланс:  " +
@@ -377,7 +376,7 @@ def new_percent(message):
             if io_manager.update_percent(int(message.text)) is True:
                 bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + str(percent))
                 handler_start(message)
-                log.info_logs(str(Vars.accept_user) + " изменил процент на " + str(percent))
+                log.info_logs(str(ad.get_admin_name(message.chat.id)) + " изменил процент на " + str(percent))
         else:
             bot.send_message(chat_id, "Процент должен быть числом")
             bot.register_next_step_handler(message, new_percent)
@@ -411,7 +410,7 @@ def history(message):
 
     if (io_manager.is_int(message.text) is True):
         operations = int(message.text)
-        log.info_logs(str(Vars.accept_user) + " запросил историю")
+        log.info_logs(str(ad.get_admin_name(message.chat.id)) + " запросил историю")
         if ((operations != 0) & (check_history == False)):
             answer = io_manager.get_information_from_history(io_manager.number, operations)
             bot.send_message(chat_id, answer, reply_markup=m.markup_to_info)
@@ -443,6 +442,7 @@ def history(message):
 # Ввод имени нового админа
 def add_admin_name(message):
     global admin_name
+    io_manager = buffer.get_buffer(message.chat.id)
     if message.text == "В главное меню":
         handler_start(message)
         return
@@ -450,7 +450,7 @@ def add_admin_name(message):
         manage_admins(message)
         return
     try:
-        log.info_logs(str(Vars.accept_user) + " добавил админа " + message.text)
+        log.info_logs(str(ad.get_admin_name(message.chat.id)) + " добавил админа " + message.text)
         ad.reload_admin_list()
         admin_name = message.text
         if admin_name not in ad.admins.keys():
@@ -459,7 +459,7 @@ def add_admin_name(message):
         else:
             bot.send_message(message.chat.id, "Такое имя уже занято", reply_markup=m.markup_repeat_new_admin)
     except:
-        log.info_logs("Ошибка в add_admin_name: " + str(Vars.accept_user) + " ввел " + admin_name)
+        log.info_logs("Ошибка в add_admin_name: " + str(ad.get_admin_name(message.chat.id)) + " ввел " + admin_name)
         bot.send_message(message.chat.id, "Ошибка добавления")
 
 
@@ -480,7 +480,7 @@ def add_admin_id(message):
         bot.send_message(message.chat.id, "Администратор " + admin_name + " добавлен!")
         manage_admins(message)
     except ValueError:
-        log.error_logs(str(Vars.accept_user) + " не правильно ввел процент")
+        log.error_logs(str(ad.get_admin_name(message.chat.id)) + " не правильно ввел процент")
         bot.send_message(message.chat.id, "ID должно быть числом", reply_markup=m.markup_repeat_new_admin)
         e = sys.exc_info()[1]
         logs.error_logs(str(e))
@@ -500,7 +500,7 @@ def delete_admin_name(message):
     if message.text in ad.admins.keys():
         io_manager.delete_information_from_list_admins(message.text)
         bot.send_message(message.chat.id, "Администратор " + message.text + " удален!")
-        log.info_logs("Админ " + str(Vars.accept_user) + " удалил " + message.text)
+        log.info_logs("Админ " + str(ad.get_admin_name(message.chat.id)) + " удалил " + message.text)
         manage_admins(message)
     else:
         bot.send_message(message.chat.id, "Администратора с таким именем нет.\n" + print_admins,
@@ -523,7 +523,7 @@ def callback_key(call):
             return
 
         # Добавление админа
-        if call.data == "add_admin":
+        if ((call.data == "add_admin") & (ad.check_main_admins(chat_id))):
             name_new_admin = bot.edit_message_text("Введите имя нового администратора", call.message.chat.id,
                                                    call.message.message_id)
             bot.register_next_step_handler(name_new_admin, add_admin_name)

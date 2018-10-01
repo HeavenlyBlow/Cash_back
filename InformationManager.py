@@ -18,11 +18,8 @@ class input_output_manager:
     is_first = True
     id_admin = []
     name_admin = []
-    accept_user = ""
     admin_is_main = False
 
-    # def status_admin(self):
-    #     db_worker = SQL(database_neme)
 
 
     def get_admins_request(self):
@@ -251,3 +248,5 @@ class input_output_manager:
         else:
             return self.percent
 
+    def check_main_admin(self, chat_id):
+        self.admin_is_main = True
