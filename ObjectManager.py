@@ -21,7 +21,6 @@ class Buffer:
             logs.error_logs(str(e))
             return False
 
-
     def del_buffer(self, chat_id):
         try:
             del self.buffer[chat_id]
