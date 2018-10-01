@@ -22,7 +22,7 @@ class SQL:
                 return True
         except :
             e = sys.exc_info()[1]
-            logs.error_logs("Error of registration: " + str(number) + " " + str(name) + " " + str(points) + " " + str(add_id))
+            logs.error_logs("Error of registration: " + str(number) + " " + str(points) + " " + str(add_id))
             logs.error_logs(str(e))
             return False
     def check_number(self,number):

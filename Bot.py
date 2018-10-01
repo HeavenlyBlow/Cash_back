@@ -77,7 +77,7 @@ def start_handler(message):
     buffer.set_buffer(message.chat.id, io_manager)
     ad.reload_admin_list()
     if check_user(message.chat.id):
-        log.info_logs("User - " + ad.get_admin_name(message.chat.id) + " was authorized")
+        log.info_logs("User -  " + str(message.chat.id) + " was authorized")
         if ad.check_main_admins(message.chat.id) == True:
             bot.send_message(message.chat.id, "Запуск бота", reply_markup=m.first_markup_main_admin)
         else:
@@ -202,7 +202,7 @@ def handler_start(message):
     if ((check_user(message.chat.id)) & (io_manager != None)):
         chat_id = message.chat.id
         # console("В главное меню", message)
-        bot.send_message(chat_id, '\U0001F44BПривет, ' + str(ad.get_admin_name(message.chat.id)) + '\U0001F44B                                 \n'
+        bot.send_message(chat_id, '\U0001F44BПривет, ' + ad.get_admin_name(message.chat.id) + '\U0001F44B                                 \n'
                                 'Тебя приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
                          str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
 
@@ -269,7 +269,7 @@ def add_points_two(message):
                                     str(db_point))
             bot.send_message(chat_id, io_manager.number +"\n\nТекущий процент: " + str(io_manager.get_percent()) + "\nДобавлено " + str(points) + " бонусов.\nБаланс: " + str(db_point),
                              reply_markup=m.markup_to_info)
-            log.info_logs(str(ad.get_admin_name(message.chat.id)) + " add " + str_number + " points: " + str(points))
+            log.info_logs(str(message.chat.id) + " add " + str_number + " points: " + str(points))
 
             return
         #Проверка на то, нажал ли пользователь кнопку "Назад", чтобы не выводить сообщения по два раза
@@ -292,7 +292,7 @@ def add_points_two(message):
 
     except:
         bot.send_message(chat_id, "Ошибка в добавлении")
-        log.error_logs("Error in adding points: " + str(ad.get_admin_name(message.chat.id)))
+        log.error_logs("Error in adding points: " + str(message.chat.id))
 
 #Удаление баллов
 def sub_points(message):
@@ -317,7 +317,7 @@ def sub_points(message):
                 io_manager.point = int(input_point)
                 bot.send_message(chat_id, io_manager.number + "\n\nСписано " + message.text + " бонусов. \nБаланс:  " + input_point,
                                  reply_markup=m.markup_to_info)
-                log.info_logs(str(ad.get_admin_name(message.chat.id)) + " sub " + str_number + " " + message.text + " points")
+                log.info_logs(str(message.chat.id) + " sub " + str_number + " " + message.text + " points")
                 return
 
             # Проверка на то, нажал ли пользователь кнопку "Назад", чтобы не выводить сообщения по два раза
@@ -365,7 +365,7 @@ def handle_message(message):
             str_number = io_manager.number_processing(number)
             io_manager.get_information_request(str_number)
             if io_manager.error_request == False:
-                log.info_logs(str(ad.get_admin_name(message.chat.id)) + " requested information about the number: " + io_manager.number)
+                log.info_logs(str(message.chat.id) + " requested information about the number: " + io_manager.number)
                 bot.send_message(chat_id,
                                  "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
                                  io_manager.number + "\nБаланс:  " +
@@ -410,7 +410,7 @@ def new_percent(message):
             if io_manager.update_percent(int(message.text)) is True:
                 bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + str(percent))
                 handler_start(message)
-                log.info_logs(str(ad.get_admin_name(message.chat.id)) + " set percent to " + str(percent))
+                log.info_logs(str(message.chat.id) + " set percent to " + str(percent))
         else:
             bot.send_message(chat_id, "Процент должен быть числом")
             bot.register_next_step_handler(message, new_percent)
@@ -444,7 +444,7 @@ def history(message):
 
     if (io_manager.is_int(message.text) is True):
         operations = int(message.text)
-        log.info_logs(str(ad.get_admin_name(message.chat.id)) + " requested history")
+        log.info_logs(str(message.chat.id) + " requested history")
         if ((operations != 0) & (check_history == False)):
             answer = io_manager.get_information_from_history(io_manager.number, operations)
             bot.send_message(chat_id, answer, reply_markup=m.markup_to_info)
@@ -484,7 +484,7 @@ def add_admin_name(message):
         manage_admins(message)
         return
     try:
-        log.info_logs(str(ad.get_admin_name(message.chat.id)) + " add admin: " + message.text)
+        log.info_logs(str(message.chat.id) + " add admin: " + message.text)
         ad.reload_admin_list()
         admin_name = message.text
         if admin_name not in ad.admins.keys():
@@ -493,7 +493,7 @@ def add_admin_name(message):
         else:
             bot.send_message(message.chat.id, "Такое имя уже занято", reply_markup=m.markup_repeat_new_admin)
     except:
-        log.info_logs("Error in add_admin_name: " + str(ad.get_admin_name(message.chat.id)) + " entered " + admin_name)
+        log.info_logs("Error in add_admin_name: " + str(message.chat.id) + " entered " + admin_name)
         bot.send_message(message.chat.id, "Ошибка добавления")
 
 
@@ -514,7 +514,7 @@ def add_admin_id(message):
         bot.send_message(message.chat.id, "Администратор " + admin_name + " добавлен!")
         manage_admins(message)
     except ValueError:
-        log.error_logs(str(ad.get_admin_name(message.chat.id)) + " incorrectly entered a percent")
+        log.error_logs(str(message.chat.id) + " incorrectly entered a percent")
         bot.send_message(message.chat.id, "ID должно быть числом", reply_markup=m.markup_repeat_new_admin)
         e = sys.exc_info()[1]
         logs.error_logs(str(e))
@@ -534,7 +534,7 @@ def delete_admin_name(message):
     if message.text in ad.admins.keys():
         io_manager.delete_information_from_list_admins(message.text)
         bot.send_message(message.chat.id, "Администратор " + message.text + " удален!")
-        log.info_logs("Admin " + str(ad.get_admin_name(message.chat.id)) + " delete " + message.text)
+        log.info_logs("Admin " + str(message.chat.id) + " delete " + message.text)
         manage_admins(message)
     else:
         bot.send_message(message.chat.id, "Администратора с таким именем нет.\n" + print_admins,
