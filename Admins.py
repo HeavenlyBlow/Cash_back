@@ -11,9 +11,9 @@ logs = logs()
 class administrators:
     io_manager = io()
     admins = {}
-    main_admins = {'Алексей': 339425291,
-                   'Андрей': 447165655,
-                   'Кастрюля': 467989150}
+    # main_admins = {'Алексей': 339425291,
+    #                'Андрей': 447165655,
+    #                'Кастрюля': 467989150}
     admin_name = {}
 
     main_admin_name = {339425291: 'Алексей',
@@ -49,7 +49,7 @@ class administrators:
 
     def check_main_admins(self, chat_id):
         try:
-            for p in self.main_admins.values():
+            for p in self.main_admin_name.keys():
                 if p == chat_id:
                     return True
             return False

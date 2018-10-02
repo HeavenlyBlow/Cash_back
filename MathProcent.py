@@ -2,4 +2,4 @@
 
 
 def points_value(summ, procent):
-    return int(summ * procent / 100)
+    return round(summ * procent / 100)

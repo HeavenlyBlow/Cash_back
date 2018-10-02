@@ -10,7 +10,7 @@ from ObjectManager import Buffer
 from Admins import administrators
 from MathProcent import points_value
 from Log import logs
-import cherrypy
+#import cherrypy
 
 buffer = Buffer()
 ad = administrators()
@@ -31,33 +31,33 @@ input_number = ""
 
 
 
-WEBHOOK_HOST = '145.239.25.96'
-WEBHOOK_PORT = 8443  # 443, 80, 88 или 8443 (порт должен быть открыт!)
-WEBHOOK_LISTEN = '0.0.0.0'  # На некоторых серверах придется указывать такой же IP, что и выше
-
-WEBHOOK_SSL_CERT = 'webhook_cer.pem'  # Путь к сертификату
-WEBHOOK_SSL_PRIV = 'webhook_pke.pem'  # Путь к приватному ключу
-
-WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/%s/" % (config.token)
+# WEBHOOK_HOST = '145.239.25.96'
+# WEBHOOK_PORT = 8443  # 443, 80, 88 или 8443 (порт должен быть открыт!)
+# WEBHOOK_LISTEN = '0.0.0.0'  # На некоторых серверах придется указывать такой же IP, что и выше
+#
+# WEBHOOK_SSL_CERT = 'webhook_cer.pem'  # Путь к сертификату
+# WEBHOOK_SSL_PRIV = 'webhook_pke.pem'  # Путь к приватному ключу
+#
+# WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
+# WEBHOOK_URL_PATH = "/%s/" % (config.token)
 
 bot = telebot.TeleBot(config.token)
 
 # Наш вебхук-сервер
-class WebhookServer(object):
-    @cherrypy.expose
-    def index(self):
-        if 'content-length' in cherrypy.request.headers and \
-                        'content-type' in cherrypy.request.headers and \
-                        cherrypy.request.headers['content-type'] == 'application/json':
-            length = int(cherrypy.request.headers['content-length'])
-            json_string = cherrypy.request.body.read(length).decode("utf-8")
-            update = telebot.types.Update.de_json(json_string)
-            # Эта функция обеспечивает проверку входящего сообщения
-            bot.process_new_updates([update])
-            return ''
-        else:
-            raise cherrypy.HTTPError(403)
+# class WebhookServer(object):
+#     @cherrypy.expose
+#     def index(self):
+#         if 'content-length' in cherrypy.request.headers and \
+#                         'content-type' in cherrypy.request.headers and \
+#                         cherrypy.request.headers['content-type'] == 'application/json':
+#             length = int(cherrypy.request.headers['content-length'])
+#             json_string = cherrypy.request.body.read(length).decode("utf-8")
+#             update = telebot.types.Update.de_json(json_string)
+#             # Эта функция обеспечивает проверку входящего сообщения
+#             bot.process_new_updates([update])
+#             return ''
+#         else:
+#             raise cherrypy.HTTPError(403)
 
 
 
@@ -97,7 +97,7 @@ def registrations_main(message):
     io_manager = buffer.get_buffer(message.chat.id)
     if check_user(message.chat.id):
         if regs == False:
-            log.info_logs(str(ad.get_admin_name) + " started registration")
+            log.info_logs(str(message.chat.id) + " started registration")
         if message.text == "В главное меню":
             start_handler(message)
             regs = False
@@ -124,7 +124,7 @@ def registrations_main(message):
                     points = points_value(int(message.text), io_manager.percent)
                     # Отправляем данные в базу данных
 
-                    log.info_logs("Set amount: " + str(message.text) + " Points: " + str(points))
+                    log.info_logs(str(message.chat.id) + " set amount: " + str(message.text) + " Points: " + str(points))
                     str_number = io_manager.number_processing(number)
 
                     add_id = 1
@@ -138,10 +138,10 @@ def registrations_main(message):
                             datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')), points)
 
                         bot.send_message(message.chat.id,
-                                         "Успешно!\n\nИмя: " + name + "\nНомер: " + str(number) +
-                                         "\nБаллов: " + str(points) +
+                                         "Успешно\U00002705\n\n\U0001F464Имя: " + name + "\n\U0000260EНомер: " + str(number) +
+                                         "\n\U0001F4B0Баллов: " + str(points) +
                                          "\n\nТекущий процент: " + str(io_manager.percent))
-                        log.info_logs("Writing is successful")
+                        log.info_logs(str(message.chat.id) + " writing is successful")
                     regs = False
 
         except:
@@ -160,20 +160,21 @@ def registrations_main(message):
                         return
                     if (int(message.text) >= 79000000000) & (int(message.text) <= 89999999999):
                         in_number(message.text)
-                        log.info_logs("Entered number: " + message.text)
+                        log.info_logs(str(message.chat.id) + " entered number: " + message.text)
                         next_steep = bot.send_message(message.chat.id, "Введите сумму")
                         bot.register_next_step_handler(next_steep, registrations_main)
                     else:
-                        log.info_logs("Number is not correct: " + message.text)
+                        log.info_logs(str(message.chat.id) + " entered incorrect number: " + message.text)
                         msg1 = bot.send_message(message.chat.id, "Номер введен некорректно. Повторите ввод номера")
                         bot.register_next_step_handler(msg1, registrations_main)
                         return
         except:
             log.error_logs("Error in entered number")
-            pause = bot.send_message(message.chat.id, "Повторите ввод номера")
+            pause = bot.send_message(message.chat.id, "Номер должен состоять из цифр. Повторите ввод номера")
             bot.register_next_step_handler(pause, registrations_main)
             e = sys.exc_info()[1]
-            logs.error_logs(str(e))
+            log.error_logs(str(e))
+            return
 
         try:
             if (number == ''):
@@ -181,7 +182,7 @@ def registrations_main(message):
                     in_name(message.text)
                     next_steep = bot.send_message(message.chat.id,
                                                   "Введите номер телефона \nв формате 7---------- или 8----------")
-                    log.info_logs("Entered name: " + message.text)
+                    log.info_logs(str(message.chat.id) + " entered name: " + message.text)
                     bot.register_next_step_handler(next_steep, registrations_main)
         except:
             log.error_logs("Error of input name")
@@ -203,10 +204,9 @@ def handler_start(message):
     if ((check_user(message.chat.id)) & (io_manager != None)):
         chat_id = message.chat.id
         # console("В главное меню", message)
-        bot.send_message(chat_id, '\U0001F44BПривет, ' + ad.get_admin_name(message.chat.id) + '\U0001F44B                                 \n'
-                                'Тебя приветствует кэш-бэк сервис - ********\nСейчас процент: ' +
+        bot.send_message(chat_id, '\U0001F44BПривет, ' + ad.get_admin_name(message.chat.id) + '\U0001F44B\n' +
+                                '\nТебя приветствует кэш-бэк сервис \"apple_house18\"\nСейчас процент: ' +
                          str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
-
     elif io_manager == None:
         bot.send_message(message.chat.id, "Бот не запущен!")
         start_handler(message)
@@ -220,7 +220,6 @@ def manage_admins(message):
     global print_admins
     io_manager = buffer.get_buffer(message.chat.id)
     ad.reload_admin_list()
-    # print(ad.admins.encode('UTF-8'))
     if ad.admins == {}:
         print_admins = "Список администраторов пуст!"
     else:
@@ -268,8 +267,9 @@ def add_points_two(message):
                 datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
                 datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
                                     str(db_point))
-            bot.send_message(chat_id, io_manager.number +"\n\nТекущий процент: " + str(io_manager.get_percent()) + "\nДобавлено " + str(points) + " бонусов.\nБаланс: " + str(db_point),
-                             reply_markup=m.markup_to_info)
+            bot.send_message(chat_id,"Данные обновлены для номера +7" + io_manager.number +"\n\n\U0001F4DDДобавлено " + str(points) +
+                             " баллов\n\U0001F4B0Баланс: " + str(db_point) + "\n\nТекущий процент: " +
+                             str(io_manager.get_percent()), reply_markup=m.markup_to_info)
             log.info_logs(str(message.chat.id) + " add " + str_number + " points: " + str(points))
 
             return
@@ -316,7 +316,8 @@ def sub_points(message):
                     datetime.datetime.fromtimestamp(message.date).strftime('%d.%m.%Y')), str(
                     datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')), input_point)
                 io_manager.point = int(input_point)
-                bot.send_message(chat_id, io_manager.number + "\n\nСписано " + message.text + " бонусов. \nБаланс:  " + input_point,
+                bot.send_message(chat_id,"Данные обновлены для номера +7" + io_manager.number +"\n\n\U0001F4DDСписано " +
+                                 message.text + " баллов\n\U0001F4B0Баланс: " + input_point,
                                  reply_markup=m.markup_to_info)
                 log.info_logs(str(message.chat.id) + " sub " + str_number + " " + message.text + " points")
                 return
@@ -368,8 +369,8 @@ def handle_message(message):
             if io_manager.error_request == False:
                 log.info_logs(str(message.chat.id) + " requested information about the number: " + io_manager.number)
                 bot.send_message(chat_id,
-                                 "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
-                                 io_manager.number + "\nБаланс:  " +
+                                 "Информация о клиенте:\n" + "\U00002796"*9 + "\n\U0001F464Имя:  " + io_manager.name + "\n\U0000260EНомер:  " +
+                                 io_manager.number + "\n\U0001F4B0Баланс:  " +
                                  str(io_manager.point), reply_markup=m.markup_change_points)
             else:
                 if (int(message.text) >= 79000000000) & (int(message.text) <= 89999999999):
@@ -381,8 +382,9 @@ def handle_message(message):
                     bot.register_next_step_handler(msg, handle_message)
         except:
             log.error_logs("Error in handler_message" + str(chat_id) + "|" + message.text)
-            bot.send_message(chat_id, "Номер не введен")
-            handler_start(message)
+            msg1 = bot.send_message(chat_id, "Номер введен некорректно. Повторите ввод номера")
+            bot.register_next_step_handler(msg1, handle_message)
+            return
 
     else:
         bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
@@ -409,25 +411,14 @@ def new_percent(message):
                 return
 
             if io_manager.update_percent(int(message.text)) is True:
-                bot.send_message(chat_id, "Процент изменен.\nНовый процент: " + str(percent))
+                bot.send_message(chat_id, "Процент изменен\U00002705")
                 handler_start(message)
                 log.info_logs(str(message.chat.id) + " set percent to " + str(percent))
         else:
-            bot.send_message(chat_id, "Процент должен быть числом")
+            bot.send_message(chat_id, "Процент должен быть целым числом")
             bot.register_next_step_handler(message, new_percent)
     else:
         bot.send_message(message.chat.id, "У вас нет прав заходить сюда")
-
-#Вывод нового процента
-def np_info(message):
-    if message.text == "В главное меню":
-        handler_start(message)
-        return
-    elif message.text == "Администрирование":
-        manage_admins(message)
-        return
-    chat_id = message.chat.id
-    bot.send_message(chat_id, "Новый процент: ")
 
 
 # TODO Вылетает с ошибкой если ввести количество записей больше 8
@@ -467,8 +458,6 @@ def history(message):
         else:
             bot.send_message(chat_id, "Количество операций должно быть больше 0")
             bot.register_next_step_handler(message, history)
-
-
     else:
         bot.send_message(chat_id, "Количество операций должно быть числом")
         bot.register_next_step_handler(message, history)
@@ -494,7 +483,7 @@ def add_admin_name(message):
         else:
             bot.send_message(message.chat.id, "Такое имя уже занято", reply_markup=m.markup_repeat_new_admin)
     except:
-        log.info_logs("Error in add_admin_name: " + str(message.chat.id) + " entered " + admin_name)
+        log.error_logs("Error in add_admin_name: " + str(message.chat.id) + " entered " + admin_name)
         bot.send_message(message.chat.id, "Ошибка добавления")
 
 
@@ -518,7 +507,7 @@ def add_admin_id(message):
         log.error_logs(str(message.chat.id) + " incorrectly entered a percent")
         bot.send_message(message.chat.id, "ID должно быть числом", reply_markup=m.markup_repeat_new_admin)
         e = sys.exc_info()[1]
-        logs.error_logs(str(e))
+        log.error_logs(str(e))
 
 
 # Удаление админа
@@ -535,7 +524,7 @@ def delete_admin_name(message):
     if message.text in ad.admins.keys():
         io_manager.delete_information_from_list_admins(message.text)
         bot.send_message(message.chat.id, "Администратор " + message.text + " удален!")
-        log.info_logs("Admin " + str(message.chat.id) + " delete " + message.text)
+        log.info_logs(str(message.chat.id) + " delete admin: " + message.text)
         manage_admins(message)
     else:
         bot.send_message(message.chat.id, "Администратора с таким именем нет.\n" + print_admins,
@@ -575,7 +564,6 @@ def callback_key(call):
             try:
                 msg19 = bot.edit_message_text("Введите процент не превышающий 10", call.message.chat.id,
                                               call.message.message_id)
-
                 bot.register_next_step_handler(msg19, new_percent)
             except:
                 log.error_logs("Error of button сhange_proc")
@@ -586,9 +574,7 @@ def callback_key(call):
             try:
                 mess = bot.edit_message_text("Введите номер телефона \nв формате 7---------- или 8----------", chat_id,
                                              message_id)
-
                 bot.register_next_step_handler(mess, handle_message)
-
             except:
                 log.error_logs("Error in button input_number")
                 return
@@ -631,7 +617,7 @@ def callback_key(call):
         if call.data == "sub_points":
             try:
                 msg3 = bot.edit_message_text(
-                    "Введите количество списываемых баллов не превышающих:  " + str(io_manager.point),
+                    "Введите количество списываемых баллов не превышающих  " + str(io_manager.point),
                     chat_id, message_id, reply_markup=m.markup_back_to_info)
                 if (check_sub_points == False):
                     bot.register_next_step_handler(msg3, sub_points)
@@ -642,8 +628,8 @@ def callback_key(call):
         #Нажатие на кнопку "Назад"
         if call.data == "back_to_info":
             bot.send_message(chat_id,
-                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
-                             io_manager.number + "\nБаланс:  " +
+                             "Информация о клиенте:\n" + "\U00002796"*9 + "\n\U0001F464Имя:  " + io_manager.name + "\n\U0000260EНомер: " +
+                             io_manager.number + "\n\U0001F4B0Баланс:  " +
                              str(io_manager.point), reply_markup=m.markup_change_points)
             check_history = True
             check_add_points = True
@@ -653,8 +639,8 @@ def callback_key(call):
         #Нажатие на кнопку "К информации о номере"
         if call.data == "to_info":
             bot.send_message(chat_id,
-                             "Информация о клиенте:\n\n" + "Имя:  " + io_manager.name + "\nНомер:  " +
-                             io_manager.number + "\nБаланс:  " +
+                             "Информация о клиенте:\n" + "\U00002796"*9 + "\n\U0001F464Имя:  " + io_manager.name + "\n\U0000260EНомер: " +
+                             io_manager.number + "\n\U0001F4B0Баланс:  " +
                              str(io_manager.point), reply_markup=m.markup_change_points)
             bot.delete_message(chat_id, message_id)
 
@@ -681,29 +667,29 @@ def in_point(message):
     global points
     points = int(message)
 
-# def main():
-#     bot.polling(none_stop=True)
+def main():
+    bot.polling(none_stop=True)
 
 
-bot.remove_webhook()
+# bot.remove_webhook()
+#
+# bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
+#                 certificate=open(WEBHOOK_SSL_CERT, 'r'))
+#
+# cherrypy.config.update({
+#     'server.socket_host': WEBHOOK_LISTEN,
+#     'server.socket_port': WEBHOOK_PORT,
+#     'server.ssl_module': 'builtin',
+#     'server.ssl_certificate': WEBHOOK_SSL_CERT,
+#     'server.ssl_private_key': WEBHOOK_SSL_PRIV
+# })
+#
+# cherrypy.quickstart(WebhookServer(), WEBHOOK_URL_PATH, {'/': {}})
 
-bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
-                certificate=open(WEBHOOK_SSL_CERT, 'r'))
-
-cherrypy.config.update({
-    'server.socket_host': WEBHOOK_LISTEN,
-    'server.socket_port': WEBHOOK_PORT,
-    'server.ssl_module': 'builtin',
-    'server.ssl_certificate': WEBHOOK_SSL_CERT,
-    'server.ssl_private_key': WEBHOOK_SSL_PRIV
-})
-
-cherrypy.quickstart(WebhookServer(), WEBHOOK_URL_PATH, {'/': {}})
 
 
-
-# try:
-#     if __name__ == '__main__':
-#         main()
-# except:
-#     log.error_logs("Ошибка цикла!")
+try:
+    if __name__ == '__main__':
+        main()
+except:
+    log.error_logs("Ошибка цикла!")

@@ -3,7 +3,7 @@ ad = ''
 
 def check_user(id):
     try:
-        for j in ad.main_admins.values():
+        for j in ad.main_admin_name.keys():
             if j == id:
                 return True
         for i in ad.admins.values():
