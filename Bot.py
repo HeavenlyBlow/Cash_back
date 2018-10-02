@@ -68,11 +68,6 @@ class WebhookServer(object):
 #Обработка сообщения /start
 @bot.message_handler(commands=['start'])
 def start_handler(message):
-    # try:
-    #
-    # except:
-    #     log.info_logs("Ошибка в start_handler")
-    #     bot.send_message(message.chat.id, "Ошибка авторизации")
     io_manager = io()
     buffer.set_buffer(message.chat.id, io_manager)
     ad.reload_admin_list()
@@ -140,7 +135,7 @@ def registrations_main(message):
                         bot.send_message(message.chat.id,
                                          "Успешно\U00002705\n\n\U0001F464Имя: " + name + "\n\U0000260EНомер: " + str(number) +
                                          "\n\U0001F4B0Баллов: " + str(points) +
-                                         "\n\nТекущий процент: " + str(io_manager.percent))
+                                         "\n\n\U0001F4CCТекущий процент: " + str(io_manager.percent))
                         log.info_logs(str(message.chat.id) + " writing is successful")
                     regs = False
 
@@ -205,7 +200,8 @@ def handler_start(message):
         chat_id = message.chat.id
         # console("В главное меню", message)
         bot.send_message(chat_id, '\U0001F44BПривет, ' + ad.get_admin_name(message.chat.id) + '\U0001F44B\n' +
-                                '\nТебя приветствует кэш-бэк сервис \"apple_house18\"\nСейчас процент: ' +
+                                '\nТебя приветствует кэш-бэк сервис \"apple_house18\"                   \n\n'
+                                + '\U0001F4CCСейчас процент: ' +
                          str(io_manager.get_percent()), reply_markup=m.markup_change_proc)
     elif io_manager == None:
         bot.send_message(message.chat.id, "Бот не запущен!")
@@ -223,9 +219,10 @@ def manage_admins(message):
     if ad.admins == {}:
         print_admins = "Список администраторов пуст!"
     else:
-        print_admins = "Список администраторов:\nАдминистратор | ID\n\n"
+        print_admins = "Администраторы:\n" + "\U00002796"*9 + "\n ID                |  Имя\n\n"
         for i in ad.admins:
-            print_admins += str(i) + "  |  " + str(ad.admins.get(i)) + "\n"
+            print_admins += str(ad.admins.get(i)) + " |  " + str(i) + "\n"
+            # print_admins += str(i) + "  |  " + str(ad.admins.get(i)) + "\n"
     try:
         # Главный админ
         if (check_user(message.chat.id) & (ad.check_main_admins(message.chat.id)) & (io_manager != None)):
@@ -268,7 +265,8 @@ def add_points_two(message):
                 datetime.datetime.fromtimestamp(message.date).strftime('%H:%M:%S')),
                                     str(db_point))
             bot.send_message(chat_id,"Данные обновлены для номера +7" + io_manager.number +"\n\n\U0001F4DDДобавлено " + str(points) +
-                             " баллов\n\U0001F4B0Баланс: " + str(db_point) + "\n\nТекущий процент: " +
+                             " баллов\n\U0001F4B0Баланс: " + str(db_point)
+                             + "\n\n\U0001F4CCТекущий процент: " +
                              str(io_manager.get_percent()), reply_markup=m.markup_to_info)
             log.info_logs(str(message.chat.id) + " add " + str_number + " points: " + str(points))
 

@@ -27,7 +27,6 @@ class administrators:
         temp = self.io_manager.id_admin
         k = 0
         for i in temp:
-            #self.admins[self.io_manager.name_admin[k]] = int(self.io_manager.id_admin[k])
             o = self.io_manager.name_admin[k]
             m = int(self.io_manager.id_admin[k])
 
