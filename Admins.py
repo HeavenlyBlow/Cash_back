@@ -17,7 +17,8 @@ class administrators:
     admin_name = {}
 
     main_admin_name = {339425291: 'Алексей',
-                       447165655: 'Андрей'}
+                       447165655: 'Андрей',
+                       413940724: 'Алексей'}
 
 
     def reload_admin_list(self):
